@@ -1,6 +1,7 @@
 import requests
 import random
-import string
+from genres import (MUSIC_GENRES, ALL_GENRES, POPULAR_GENRES, 
+                   ELECTRONIC_ARTISTS, POPULAR_ELECTRONIC_GENRES, POPULAR_ARTISTS)
 
 # Deezer API base URL
 DEEZER_API_BASE = "https://api.deezer.com"
@@ -8,24 +9,52 @@ DEEZER_API_BASE = "https://api.deezer.com"
 class DeezerClient:
     def __init__(self):
         self.api_base = DEEZER_API_BASE
-        # Common letters that typically return results
-        self._common_letters = 'aeiourstlnm'
+        # Combine mainstream and electronic artists
+        self.popular_artists = POPULAR_ARTISTS + ELECTRONIC_ARTISTS
+        
+        # Cache the genres for efficient access
+        self.all_genres = ALL_GENRES
+        self.popular_genres = POPULAR_GENRES
+        self.electronic_genres = MUSIC_GENRES["electronic"]
+        self.popular_electronic = POPULAR_ELECTRONIC_GENRES
+
+    def _get_random_genre(self, electronic_bias=0.4, popular_bias=0.7):
+        """
+        Get a random genre with bias towards electronic and popular genres.
+        electronic_bias: probability of selecting electronic genre
+        popular_bias: probability of selecting from popular genres when not electronic
+        """
+        if random.random() < electronic_bias:
+            # Select electronic genre
+            if random.random() < popular_bias:
+                return random.choice(self.popular_electronic)
+            return random.choice(self.electronic_genres)
+        else:
+            # Select from all genres
+            if random.random() < popular_bias:
+                return random.choice(self.popular_genres)
+            return random.choice(self.all_genres)
+
+    def _get_random_artist(self, electronic_bias=0.4):
+        """Get random artist with bias towards electronic artists."""
+        if random.random() < electronic_bias:
+            return random.choice(ELECTRONIC_ARTISTS)
+        return random.choice(self.popular_artists)
 
     def _generate_random_query(self):
-        """Generate a random search query with higher chance of results."""
+        """Generate a search query using artist, genre, or combination."""
         query_types = [
-            # Single common letter (highest success rate)
-            lambda: random.choice(self._common_letters),
-            # Two common letters
-            lambda: ''.join(random.choices(self._common_letters, k=2)),
-            # Single any letter
-            lambda: random.choice(string.ascii_lowercase)
+            # Artist-based query
+            lambda: random.choice(self.popular_artists),
+            # Genre-based query
+            lambda: f"genre:'{self._get_random_genre()}'",
+            # Combined artist and genre
+            lambda: f"artist:'{self._get_random_artist()}' genre:'{self._get_random_genre()}'",
+            # Electronic-focused query
+            lambda: f"genre:'{random.choice(self.popular_electronic)}'"
         ]
-        
-        # Weight heavily towards common letters
-        weights = [0.6, 0.3, 0.1]
-        query_generator = random.choices(query_types, weights=weights)[0]
-        return query_generator()
+        weights = [0.3, 0.3, 0.2, 0.2]
+        return random.choices(query_types, weights=weights)[0]()
 
     def get_random_track(self, limit=1, extended_json=False, max_retries=3):
         """
@@ -60,15 +89,54 @@ class DeezerClient:
                 return None
         
         return None
+    
+    def get_track_by_search(self, query, extended_json=False):
+        """
+        Fetch the top 10 tracks from a search query.
+        
+        Args:
+            query (str): Search query string
+            extended_json (bool): Whether to return full response or just track data
+            
+        Returns:
+            list: List of track information or None if no tracks found
+        """
+        url = f"{self.api_base}/search/track"
+        params = {
+            "q": query,
+            "limit": 10,  # Fetch top 5 results
+            "order": "RANKING"  # Sort by relevance
+        }
+        
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            
+            response_json = response.json()
+            tracks = response_json.get("data", [])
+            
+            if tracks:
+                if extended_json:
+                    return response_json
+                else:
+                    return [self._get_json_for_frontend(track) for track in tracks]  # Return the top 5 tracks
+            else:
+                print(f"No tracks found for query: {query}")
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching track: {str(e)}")
+            return None
 
-    def get_track_by_genre(self, genre="pop", limit=1, extended_json=False):
+
+    def get_track_by_genre(self, genre="pop", limit=100, extended_json=False):
         """
         Search for tracks based on genre and return a randomly selected track with detailed information.
         """
         url = f"{self.api_base}/search/track"
         params = {
             "q": f"genre:'{genre}'",
-            "limit": 100,
+            "limit": limit,
             "index": random.randint(0, 200)
         }
         
@@ -122,5 +190,5 @@ class DeezerClient:
 
 if __name__ == "__main__":
     deezer_client = DeezerClient()
-    y = deezer_client.get_random_track()
+    y = deezer_client.get_track_by_search("in the name of love")[0]
     print(y)
