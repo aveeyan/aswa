@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - aswa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #111;
+            color: white;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 flex justify-between items-center px-8 py-3 bg-black bg-opacity-85 shadow-md">
+        <a href="/" class="text-white text-xl font-bold flex items-center">
+            (a.s.w.a)
+        </a>
+        <div class="flex gap-6">
+            <a href="/" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="/playlist/view" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
+                <i class="fas fa-heart"></i> Your Playlist
+            </a>
+            <a href="/login" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="/moodboard" class="{% if title == 'Moodboard' %}text-white bg-white bg-opacity-15 font-semibold{% else %}text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10{% endif %} px-3 py-2 rounded transition">
+                <i class="fas fa-palette"></i> Moodboard
+            </a>
+            <a href="/analytics" class="{% if title == 'Analytics' %}text-white bg-white bg-opacity-15 font-semibold{% else %}text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10{% endif %} px-3 py-2 rounded transition">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto mt-20 px-4 text-center">
+        <div class="bg-gray-800 rounded-lg p-12 shadow-lg">
+            <i class="fas {% if title == 'Moodboard' %}fa-palette{% elif title == 'Analytics' %}fa-chart-line{% else %}fa-tools{% endif %} text-6xl text-purple-500 mb-6"></i>
+            
+            <h1 class="text-4xl font-bold mb-4">{{ title }}</h1>
+            <p class="text-xl text-gray-300 mb-8">{{ message }}</p>
+            
+            <a href="/" class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition">
+                Return Home
+            </a>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aswa: Moodboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: #00000086;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+        
+        /* Navigation Bar Styles */
+        .navbar {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2rem;
+            background-color: rgba(20, 20, 20, 0.85);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 50;
+        }
+        
+        .nav-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-brand i {
+            margin-right: 8px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-item {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.15);
+            font-weight: 600;
+        }
+        
+        .background-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2980b9, #6dd5fa, #ffffff);
+            z-index: 1;
+            opacity: 0.6;
+        }
+        
+        .content-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 5;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-title i {
+            margin-right: 0.75rem;
+            color: #6dd5fa;
+        }
+        
+        .moods-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .mood-card {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 1.25rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mood-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .mood-card.active {
+            background-color: #2980b9;
+            color: white;
+        }
+        
+        .mood-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .mood-name {
+            font-weight: 500;
+        }
+        
+        .mood-description {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .mood-card.active .mood-description {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .tracks-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            flex: 1;
+        }
+        
+        .tracks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1rem;
+        }
+        
+        .tracks-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .tracks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .track-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .track-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .track-image-container {
+            position: relative;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            overflow: hidden;
+        }
+        
+        .track-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .track-play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .track-card:hover .track-play-button {
+            opacity: 1;
+        }
+        
+        .track-details {
+            padding: 1rem;
+        }
+        
+        .track-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .track-artist {
+            font-size: 0.9rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .track-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+        
+        .track-action-button {
+            color: #999;
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .track-action-button:hover {
+            color: #2980b9;
+        }
+        
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 0;
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            color: #2980b9;
+            margin-bottom: 1rem;
+        }
+        
+        .loading-text {
+            color: #666;
+        }
+        
+        .no-tracks {
+            text-align: center;
+            padding: 3rem 0;
+            color: #999;
+        }
+        
+        .no-tracks i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        /* Now Playing Bar */
+        .now-playing {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(20, 20, 20, 0.9);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 90;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .now-playing-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .now-playing-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            margin-right: 0.75rem;
+        }
+        
+        .now-playing-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .now-playing-title {
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .now-playing-artist {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .now-playing-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .control-button {
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .control-button:hover {
+            color: #2980b9;
+        }
+        
+        .control-button.play-pause {
+            font-size: 1.5rem;
+        }
+        
+        .now-playing-progress {
+            flex: 1;
+            padding: 0 1.5rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            position: relative;
+        }
+        
+        .progress-fill {
+            position: absolute;
+            height: 100%;
+            background-color: #2980b9;
+            border-radius: 2px;
+            width: 30%;
+        }
+        
+        .progress-times {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-music"></i>
+            aswa
+        </a>
+        <div class="nav-links">
+            <a href="#" class="nav-item" id="home-link">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="nav-item" id="login-link">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="#" class="nav-item" id="liked-music-link">
+                <i class="fas fa-heart"></i> Liked Music
+            </a>
+            <a href="#" class="nav-item active">
+                <i class="fas fa-palette"></i> Moodboard
+            </a>
+            <a href="#" class="nav-item" id="analytics-link">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+        </div>
+    </nav>
+
+    <div class="background-container"></div>
+    
+    <div class="content-container">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-palette"></i>
+                Moodboard
+            </div>
+        </div>
+        
+        <div class="moods-container">
+            <div class="mood-card" data-mood="chill">
+                <i class="mood-icon fas fa-leaf"></i>
+                <div class="mood-name">Chill</div>
+                <div class="mood-description">Relaxed & laid-back vibes</div>
+            </div>
+            
+            <div class="mood-card" data-mood="energetic">
+                <i class="mood-icon fas fa-bolt"></i>
+                <div class="mood-name">Energetic</div>
+                <div class="mood-description">Upbeat & motivating</div>
+            </div>
+            
+            <div class="mood-card" data-mood="focus">
+                <i class="mood-icon fas fa-brain"></i>
+                <div class="mood-name">Focus</div>
+                <div class="mood-description">Concentrate & study</div>
+            </div>
+            
+            <div class="mood-card" data-mood="happy">
+                <i class="mood-icon fas fa-smile"></i>
+                <div class="mood-name">Happy</div>
+                <div class="mood-description">Cheerful & positive</div>
+            </div>
+            
+            <div class="mood-card" data-mood="sad">
+                <i class="mood-icon fas fa-cloud-rain"></i>
+                <div class="mood-name">Melancholy</div>
+                <div class="mood-description">Emotional & reflective</div>
+            </div>
+            
+            <div class="mood-card" data-mood="romantic">
+                <i class="mood-icon fas fa-heart"></i>
+                <div class="mood-name">Romantic</div>
+                <div class="mood-description">Love & passion</div>
+            </div>
+            
+            <div class="mood-card" data-mood="party">
+                <i class="mood-icon fas fa-cocktail"></i>
+                <div class="mood-name">Party</div>
+                <div class="mood-description">Dance & celebration</div>
+            </div>
+            
+            <div class="mood-card" data-mood="workout">
+                <i class="mood-icon fas fa-dumbbell"></i>
+                <div class="mood-name">Workout</div>
+                <div class="mood-description">Exercise & fitness</div>
+            </div>
+        </div>
+        
+        <div class="tracks-container">
+            <div class="tracks-header">
+                <div class="tracks-title">Select a mood above</div>
+            </div>
+            
+            <div class="no-tracks">
+                <i class="fas fa-music"></i>
+                <p>Choose your mood to discover matching tracks</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="now-playing" id="now-playing-bar">
+        <div class="now-playing-info">
+            <img src="/api/placeholder/48/48" alt="Now Playing" class="now-playing-image">
+            <div class="now-playing-details">
+                <div class="now-playing-title">Not Playing</div>
+                <div class="now-playing-artist">Select a track to play</div>
+            </div>
+        </div>
+        
+        <div class="now-playing-controls">
+            <button class="control-button">
+                <i class="fas fa-step-backward"></i>
+            </button>
+            <button class="control-button play-pause">
+                <i class="fas fa-play"></i>
+            </button>
+            <button class="control-button">
+                <i class="fas fa-step-forward"></i>
+            </button>
+        </div>
+        
+        <div class="now-playing-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-times">
+                <span>0:00</span>
+                <span>0:30</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // DOM elements
+        const moodCards = document.querySelectorAll('.mood-card');
+        const tracksContainer = document.querySelector('.tracks-container');
+        const toast = document.getElementById('toast');
+        const nowPlayingBar = document.getElementById('now-playing-bar');
+        const playPauseButton = document.querySelector('.control-button.play-pause');
+        let currentlyPlaying = null;
+        let isPlaying = false;
+        
+        // Show toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Navigation event handlers
+        document.getElementById('home-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('Navigating to Home...');
+            // In a real app: window.parent.postMessage({ action: 'navigate', target: 'home' }, '*');
+        });
+        
+        document.getElementById('login-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('Navigating to Login...');
+            // In a real app: window.parent.postMessage({ action: 'navigate', target: 'login' }, '*');
+        });
+        
+        document.getElementById('liked-music-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('Navigating to Liked Music...');
+            // In a real app: window.parent.postMessage({ action: 'navigate', target: 'liked-music' }, '*');
+        });
+        
+        document.getElementById('analytics-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showToast('Navigating to Analytics...');
+            // In a real app: window.parent.postMessage({ action: 'navigate', target: 'analytics' }, '*');
+        });
+        
+        // Handle mood selection
+        moodCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const mood = this.dataset.mood;
+                
+                // Reset all cards
+                moodCards.forEach(c => c.classList.remove('active'));
+                
+                // Set active state
+                this.classList.add('active');
+                
+                // Fetch tracks for this mood
+                fetchMoodTracks(mood);
+            });
+        });
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Fetch tracks for a specific mood
+        async function fetchMoodTracks(mood) {
+            // Show loading state
+            tracksContainer.innerHTML = `
+                <div class="tracks-header">
+                    <div class="tracks-title">${capitalizeFirstLetter(mood)} Tracks</div>
+                </div>
+                <div class="loading-container">
+                    <i class="loading-spinner fas fa-circle-notch fa-spin"></i>
+                    <div class="loading-text">Finding ${mood} tracks for you...</div>
+                </div>
+            `;
+            
+            try {
+                // In a real app, this would be an API call to Deezer
+                // For demo, we'll simulate a network request
+                setTimeout(async () => {
+                    // Simulate API call - in a real app use fetch() to get data from backend
+                    // which would call Deezer API with genre/mood parameter
+                    const tracksData = await simulateApiCall(mood);
+                    renderTracks(tracksData, mood);
+                }, 1000);
+                
+            } catch (error) {
+                console.error(`Error fetching ${mood} tracks:`, error);
+                tracksContainer.innerHTML = `
+                    <div class="tracks-header">
+                        <div class="tracks-title">${capitalizeFirstLetter(mood)} Tracks</div>
+                    </div>
+                    <div class="no-tracks">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Failed to load tracks. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Render track grid
+        function renderTracks(tracks, mood) {
+            if (!tracks || tracks.length === 0) {
+                tracksContainer.innerHTML = `
+                    <div class="tracks-header">
+                        <div class="tracks-title">${capitalizeFirstLetter(mood)} Tracks</div>
+                    </div>
+                    <div class="no-tracks">
+                        <i class="fas fa-music"></i>
+                        <p>No tracks found for this mood</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let tracksGrid = `
+                <div class="tracks-header">
+                    <div class="tracks-title">${capitalizeFirstLetter(mood)} Tracks</div>
+                </div>
+                <div class="tracks-grid">
+            `;
+            
+            tracks.forEach(track => {
+                tracksGrid += `
+                    <div class="track-card" data-id="${track.id}">
+                        <div class="track-image-container">
+                            <img src="${track.albumCover}" alt="${track.title}" class="track-image">
+                            <button class="track-play-button" data-track='${JSON.stringify(track)}'>
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                        <div class="track-details">
+                            <div class="track-title">${track.title}</div>
+                            <div class="track-artist">${track.artist}</div>
+                            <div class="track-actions">
+                                <button class="track-action-button like-button">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                                <button class="track-action-button add-to-playlist-button">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button class="track-action-button share-button">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            tracksGrid += `</div>`;
+            tracksContainer.innerHTML = tracksGrid;
+            
+            // Add event listeners to play buttons
+            const playButtons = document.querySelectorAll('.track-play-button');
+            playButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const trackData = JSON.parse(this.getAttribute('data-track'));
+                    playTrack(trackData);
+                });
+            });
+            
+            // Add event listeners for track actions
+            const likeButtons = document.querySelectorAll('.like-button');
+            likeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const trackCard = this.closest('.track-card');
+                    const trackId = trackCard.dataset.id;
+                    
+                    // Toggle like status
+                    const isLiked = this.querySelector('i').classList.contains('fas');
+                    
+                    if (isLiked) {
+                        this.querySelector('i').classList.remove('fas');
+                        this.querySelector('i').classList.add('far');
+                        showToast('Removed from liked tracks');
+                    } else {
+                        this.querySelector('i').classList.remove('far');
+                        this.querySelector('i').classList.add('fas');
+                        this.querySelector('i').style.color = '#e74c3c';
+                        showToast('Added to liked tracks');
+                    }
+                });
+            });
+            
+            const addToPlaylistButtons = document.querySelectorAll('.add-to-playlist-button');
+            addToPlaylistButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showToast('Added to your playlist');
+                });
+            });
+            
+            const shareButtons = document.querySelectorAll('.share-button');
+            shareButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showToast('Share link copied to clipboard');
+                });
+            });
+        }
+        
+        // Play a track
+        function playTrack(track) {
+            currentlyPlaying = track;
+            isPlaying = true;
+            
+            // Update now playing bar
+            document.querySelector('.now-playing-image').src = track.albumCover;
+            document.querySelector('.now-playing-title').textContent = track.title;
+            document.querySelector('.now-playing-artist').textContent = track.artist;
+            
+            // Update play button
+            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+            
+            // Show success toast
+            showToast(`Now playing: ${track.title} by ${track.artist}`);
+            
+            // Start progress bar animation
+            const progressFill = document.querySelector('.progress-fill');
+            progressFill.style.width = '0%';
+            
+            // Animate progress bar
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(progressInterval);
+                    return;
+                }
+                
+                progress += 1;
+                if (progress > 100) {
+                    clearInterval(progressInterval);
+                    // Auto-play next track or show ended
+                    playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+                    isPlaying = false;
+                    return;
+                }
+                
+                progressFill.style.width = `${progress}%`;
+                
+                // Update time display
+                const totalTime = 30; // 30 seconds per track for demo
+                const currentTime = Math.floor((progress / 100) * totalTime);
+                document.querySelector('.progress-times span:first-child').textContent = formatTime(currentTime);
+            }, 300); // Update every 300ms 
+        }
+        
+        // Toggle play/pause
+        playPauseButton.addEventListener('click', function() {
+            if (!currentlyPlaying) {
+                showToast('Select a track to play first');
+                return;
+            }
+            
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                this.innerHTML = '<i class="fas fa-pause"></i>';
+                showToast(`Resumed: ${currentlyPlaying.title}`);
+            } else {
+                this.innerHTML = '<i class="fas fa-play"></i>';
+                showToast(`Paused: ${currentlyPlaying.title}`);
+            }
+        });
+        
+        // Format time (seconds to MM:SS)
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+        
+        // Simulate API call for tracks based on mood
+        async function simulateApiCall(mood) {
+            // Generate some sample data based on mood
+            const moodTracks = {
+                chill: [
+                    { id: 'c1', title: 'Ocean Breeze', artist: 'Coastal Vibes', albumCover: '/api/placeholder/300/300' },
+                    { id: 'c2', title: 'Sunset Lounge', artist: 'Ambient Dreams', albumCover: '/api/placeholder/300/300' },
+                    { id: 'c3', title: 'Rainy Day', artist: 'Mellow Moods', albumCover: '/api/placeholder/300/300' },
+                    { id: 'c4', title: 'Mountain Air', artist: 'Nature Sounds', albumCover: '/api/placeholder/300/300' },
+                    { id: 'c5', title: 'Quiet Evening', artist: 'Relaxation', albumCover: '/api/placeholder/300/300' },
+                    { id: 'c6', title: 'Gentle Waves', artist: 'Ocean Sounds', albumCover: '/api/placeholder/300/300' }
+                ],
+                energetic: [
+                    { id: 'e1', title: 'Power Up', artist: 'Energy Boost', albumCover: '/api/placeholder/300/300' },
+                    { id: 'e2', title: 'Electric Pulse', artist: 'High Voltage', albumCover: '/api/placeholder/300/300' },
+                    { id: 'e3', title: 'Turbo Charge', artist: 'Max Power', albumCover: '/api/placeholder/300/300' },
+                    { id: 'e4', title: 'Thunder Strike', artist: 'Lightning Force', albumCover: '/api/placeholder/300/300' },
+                    { id: 'e5', title: 'Rocket Launch', artist: 'Full Throttle', albumCover: '/api/placeholder/300/300' },
+                    { id: 'e6', title: 'Overdrive', artist: 'Power Surge', albumCover: '/api/placeholder/300/300' }
+                ],
+                focus: [
+                    { id: 'f1', title: 'Deep Concentration', artist: 'Mind Focus', albumCover: '/api/placeholder/300/300' },
+                    { id: 'f2', title: 'Study Session', artist: 'Brain Power', albumCover: '/api/placeholder/300/300' },
+                    { id: 'f3', title: 'Zen Mind', artist: 'Calm Focus', albumCover: '/api/placeholder/300/300' },
+                    { id: 'f4', title: 'Clarity', artist: 'Mental Clarity', albumCover: '/api/placeholder/300/300' },
+                    { id: 'f5', title: 'Focus Flow', artist: 'Productivity Boost', albumCover: '/api/placeholder/300/300' },
+                    { id: 'f6', title: 'Mindfulness', artist: 'Inner Peace', albumCover: '/api/placeholder/300/300' }
+                ],
+                happy: [
+                    { id: 'h1', title: 'Joyful Moments', artist: 'Happy Vibes', albumCover: '/api/placeholder/300/300' },
+                    { id: 'h2', title: 'Sunny Days', artist: 'Bright Tunes', albumCover: '/api/placeholder/300/300' },
+                    { id: 'h3', title: 'Feel Good', artist: 'Positive Energy', albumCover: '/api/placeholder/300/300' },
+                    { id: 'h4', title: 'Dance Party', artist: 'Fun Times', albumCover: '/api/placeholder/300/300' },
+                    { id: 'h5', title: 'Uplifting Beats', artist: 'Joyful Sounds', albumCover: '/api/placeholder/300/300' },
+                    { id: 'h6', title: 'Good Vibes Only', artist: 'Happy Tunes', albumCover: '/api/placeholder/300/300' }
+                ],
+                sad: [
+                    { id: 's1', title: 'Melancholy', artist: 'Sad Songs', albumCover: '/api/placeholder/300/300' },
+                    { id: 's2', title: 'Heartbreak', artist: 'Emotional Tunes', albumCover: '/api/placeholder/300/300' },
+                    { id: 's3', title: 'Lost in Thought', artist: 'Reflective Sounds', albumCover: '/api/placeholder/300/300' },
+                    { id: 's4', title: 'Tears of Joy', artist: 'Bittersweet Melodies', albumCover: '/api/placeholder/300/300' },
+                    { id: 's5', title: 'Rainy Days', artist: 'Sad Vibes', albumCover: '/api/placeholder/300/300' },
+                    { id: 's6', title: 'Nostalgia', artist: 'Memory Lane', albumCover: '/api/placeholder/300/300' }
+                ],
+                romantic: [
+                    { id: 'r1', title: 'Love Story', artist: 'Romantic Tunes', albumCover: '/api/placeholder/300/300' },
+                    { id: 'r2', title: 'Sweetheart', artist: 'Love Songs', albumCover: '/api/placeholder/300/300' },
+                    { id: 'r3', title: 'Endless Love', artist: 'Heartfelt Melodies', albumCover: '/api/placeholder/300/300' },
+                    { id: 'r4', title: 'Kiss Me', artist: 'Romantic Vibes', albumCover: '/api/placeholder/300/300' },
+                    { id: 'r5', title: 'Forever Yours', artist: 'Passionate Tunes', albumCover: '/api/placeholder/300/300' },
+                    { id: 'r6', title: 'Love at First Sight', artist: 'Romantic Beats', albumCover: '/api/placeholder/300/300' }
+                ]
+            }
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(moodTracks[mood]);
+                }, 1000);
+            });
+        }
+    </script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</body> 
+</html>

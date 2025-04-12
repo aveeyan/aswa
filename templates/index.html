@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aswa: Music Recommendation System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: #00000086;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+        
+        /* Navigation Bar Styles */
+        .navbar {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2rem;
+            background-color: rgba(20, 20, 20, 0.85);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 50;
+        }
+        
+        .nav-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-brand i {
+            margin-right: 8px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-item {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.15);
+            font-weight: 600;
+        }
+        
+        .background-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('{{ album_image }}') center/cover no-repeat;
+            filter: blur(5px);
+            opacity: 0.5;
+            z-index: 1;
+        }
+        
+        .content-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .interaction-area {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            z-index: 5;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .dislike-area {
+            left: 0;
+            background-color: rgba(255, 0, 0, 0.05);
+        }
+        
+        .like-area {
+            right: 0;
+            background-color: rgba(71, 250, 0, 0.05);
+        }
+        
+        .dislike-area:hover {
+            background-color: rgba(255, 0, 0, 0.15);
+        }
+        
+        .like-area:hover {
+            background-color: rgba(71, 250, 0, 0.15);
+        }
+        
+        /* Moved indicators to top center */
+        .action-indicator {
+            position: absolute;
+            top: 80px; /* Positioned below nav bar */
+            font-size: 96px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .dislike-icon {
+            left: 5%; /* Center horizontally in left half */
+            top: 2.5%; /* Center vertically */
+        }
+        
+        .like-icon {
+            right: 5%; /* Center horizontally in right half */
+            top: 2.5%; /* Center vertically */
+        }
+        
+        .dislike-area:hover .dislike-icon,
+        .like-area:hover .like-icon {
+            opacity: 0.8;
+        }
+        
+        .postcard-container {
+            position: relative;
+            width: 90%;
+            max-width: 1040px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: scale(0.8);
+            z-index: 10;
+        }
+        
+        .postcard, .postcard * {
+            user-select: none;
+            -webkit-user-drag: none;
+        }   
+        
+        .postcard {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: row;
+            text-align: left;
+        }
+        
+        .postcard-image {
+            width: 50%;
+            height: auto;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .postcard-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            -webkit-user-drag: none;
+        }
+        
+        .postcard-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0);
+            width: 50%;
+            align-items: center;
+        }
+        
+        .postcard-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-right: 30px;
+        }
+        
+        .postcard-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #333;
+        }
+        
+        .postcard-artists {
+            color: #666;
+            font-size: 1.8rem;
+            font-weight: 450;
+            margin-bottom: 3px;
+        }
+        
+        .postcard-album {
+            color: #999;
+            font-size: 1.6rem;
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .deezer-link {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .deezer-logo {
+            height: 30px;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .progress-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 48px;
+            filter: blur(0.5px);
+            background: rgba(255, 255, 255, 0.4);
+            transition: width 0.4s linear;
+        }
+        
+        /* Horizontal slide animations */
+        .slide-left-enter {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        
+        .slide-left-enter-active {
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 300ms ease-in;
+        }
+        
+        .slide-left-exit {
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 300ms ease-in;
+        }
+        
+        .slide-right-enter {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        
+        .slide-right-enter-active {
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 300ms ease-in;
+        }
+        
+        .slide-right-exit {
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: all 300ms ease-out;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        /* Indicator labels */
+        .action-label {
+            display: block;
+            text-align: center;
+            margin-top: -20%;
+            font-size: 24px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            (a.s.w.a)
+        </a>
+        <div class="nav-links">
+            <a href="/login" class="nav-item">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="/liked_music" class="nav-item">
+                <i class="fas fa-heart"></i> Liked Music
+            </a>
+            <a href="/moodboard" class="nav-item">
+                <i class="fas fa-palette"></i> Moodboard
+            </a>
+            <a href="/analytics" class="nav-item">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+        </div>
+    </nav>
+    
+
+    <div class="background-container" id="background-container"></div>
+    
+    <div class="content-container">
+        <!-- Interaction areas -->
+        <div class="interaction-area dislike-area" id="dislike-area">
+            <div class="action-indicator dislike-icon">
+                <i class="fas fa-times"></i>
+                <span class="action-label">Skip</span>
+            </div>
+        </div>
+        <div class="interaction-area like-area" id="like-area">
+            <div class="action-indicator like-icon">
+                <i class="fas fa-heart"></i>
+                <span class="action-label">Like</span>
+            </div>
+        </div>
+        
+        <div class="postcard-container">
+            <div class="postcard" id="postcard" style="user-select: none;">
+                <div class="postcard-image">
+                    <img draggable="false" id="album-cover" src="{{ album_image }}" alt="Album Cover">
+                </div>
+                <div class="postcard-content">
+                    <div class="postcard-details">
+                        <div class="postcard-title" id="track-title">
+                            {{ album_title }} {% if album_isexplicit %} (E) {% endif %}
+                        </div>
+                        <div class="postcard-artists" id="artist-name">{{ artists }}</div>
+                        <div class="postcard-album" id="album-details">{{ album_details }}</div>
+                    </div>
+                
+                    <!-- Deezer logo placed AFTER the text block -->
+                    <div class="deezer-link">
+                        <a href="{{ album_link }}" target="_blank">
+                            <img class="deezer-logo" 
+                                src="https://upload.wikimedia.org/wikipedia/commons/7/75/Deezer_logo%2C_2023.svg" 
+                                alt="Deezer">
+                        </a>
+                    </div>                
+                </div>
+                
+                <audio class="audio-player" id="preview-player" src="{{ preview_url }}" autoplay loop></audio>
+            </div>
+        </div>
+    </div>
+    
+    <div class="progress-overlay" id="progress-overlay"></div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Tracks data from server
+const tracks = {{ tracks | tojson | safe }};
+let currentTrackIndex = 0;
+
+// DOM Elements
+const player = document.getElementById('preview-player');
+const backgroundContainer = document.getElementById('background-container');
+const albumCover = document.getElementById('album-cover');
+const trackTitle = document.getElementById('track-title');
+const artistName = document.getElementById('artist-name');
+const albumDetails = document.getElementById('album-details');
+const progressOverlay = document.getElementById('progress-overlay');
+const dislikeArea = document.getElementById('dislike-area');
+const likeArea = document.getElementById('like-area');
+const postcard = document.getElementById('postcard');
+const toast = document.getElementById('toast');
+
+// Touch handling variables
+let startX = 0;
+let endX = 0;
+let isSwiping = false;
+const minSwipeDistance = 100; // Minimum distance for a swipe to be registered
+
+async function updateTrackInfo(track) {
+    albumCover.src = track.cover_xl;
+    backgroundContainer.style.background = `url('${track.cover_xl}') center/cover no-repeat`;
+    trackTitle.innerHTML = `${track.title} ${track.is_explicit ? '(E)' : ''}`;
+    artistName.textContent = track.artist;
+    albumDetails.textContent = track.album;
+    player.src = track.preview;
+    player.play();
+
+    // Store the current track properly in the tracks array
+    if (!tracks.find(t => t.id_deezer === track.id_deezer)) {
+        tracks.push(track);
+    }
+    
+    // Find the index of the current track by id_deezer
+    currentTrackIndex = tracks.findIndex(t => t.id_deezer === track.id_deezer);
+    if (currentTrackIndex === -1) currentTrackIndex = 0;
+    
+    // Debug log
+    console.log("Updated to track:", track.id_deezer, track.title);
+}
+
+function animateSlide(direction) {
+    const exitClass = direction === 'left' ? 'slide-left-exit' : 'slide-right-exit';
+    const enterClass = direction === 'left' ? 'slide-left-enter' : 'slide-right-enter';
+
+    postcard.classList.add(exitClass);
+    setTimeout(() => {
+        postcard.classList.remove(exitClass);
+        postcard.classList.add(enterClass);
+    }, 300);
+    setTimeout(() => {
+        postcard.classList.remove(enterClass);
+    }, 600);
+}
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// Track double-click events
+let lastClickTime = 0;
+const doubleClickDelay = 300; // milliseconds
+
+async function handleLike() {
+    try {
+        const currentTrack = tracks[currentTrackIndex];
+        // Make sure we have the current track
+        if (!currentTrack) {
+            console.error("No current track found at index", currentTrackIndex);
+            showToast("Error: No track selected");
+            return;
+        }
+        
+        // Use id_deezer as the consistent ID field
+        const trackId = currentTrack.id_deezer;
+        console.log('Liking track:', trackId, currentTrack.title);
+        
+        const saveResponse = await fetch('/save_track', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                track_id: trackId,
+                id_deezer: trackId,
+                title: currentTrack.title,
+                artist: currentTrack.artist,
+                album: currentTrack.album,
+                cover: currentTrack.cover_xl,
+                preview: currentTrack.preview,
+                link: currentTrack.link,
+                is_explicit: currentTrack.is_explicit || false
+            })
+        });
+        
+        if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            showToast(saveData.message || 'Track added to playlist!');
+        } else {
+            const errorData = await saveResponse.json();
+            showToast(errorData.error || 'Error saving track');
+        }
+        
+        const nextResponse = await fetch('/next_track');
+        if (!nextResponse.ok) {
+            throw new Error('Failed to fetch next track');
+        }
+        
+        const track = await nextResponse.json();
+        animateSlide('left');
+        
+        // Important: we need to wait for animation to complete
+        // THEN update the track info to ensure we're showing the right track
+        setTimeout(() => {
+            updateTrackInfo(track);
+            // Reset currentTrack to the new track
+            currentTrack = tracks[currentTrackIndex];
+        }, 300);
+    } catch (error) {
+        console.error('Error saving or fetching track:', error);
+        showToast('Error processing track');
+    }
+}
+
+// Similar fix for handleDislike()
+async function handleDislike() {
+    try {
+        const currentTrack = tracks[currentTrackIndex];
+        if (!currentTrack) {
+            console.error("No current track found at index", currentTrackIndex);
+            showToast("Error: No track selected");
+            return;
+        }
+        
+        const trackId = currentTrack.id_deezer;
+        console.log('Disliking track:', trackId, currentTrack.title);
+        
+        // Fetch next track
+        const response = await fetch(`/next_track?track_id=${trackId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch next track');
+        }
+        
+        const track = await response.json();
+        animateSlide('right');
+        
+        // Wait for animation to complete, then update track info
+        setTimeout(() => {
+            updateTrackInfo(track);
+            // Reset currentTrack to the new track
+            currentTrack = tracks[currentTrackIndex];
+        }, 300);
+        
+        showToast('Track skipped!');
+    } catch (error) {
+        console.error('Error fetching next track:', error);
+        showToast('Error skipping track');
+    }
+}
+
+// Dislike Area (Left Side) - Click handling
+dislikeArea.addEventListener('click', (event) => {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastClickTime < doubleClickDelay) {
+        // Double click detected
+        handleDislike();
+    }
+    lastClickTime = currentTime;
+});
+
+// Like Area (Right Side) - Click handling
+likeArea.addEventListener('click', (event) => {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastClickTime < doubleClickDelay) {
+        // Double click detected
+        handleLike();
+    }
+    lastClickTime = currentTime;
+});
+
+// Touch event handling for swiping
+postcard.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    isSwiping = true;
+    
+    // Reset any ongoing transitions
+    postcard.style.transition = 'none';
+    postcard.style.transform = 'translateX(0)';
+    postcard.style.rotate = '0deg';
+});
+
+postcard.addEventListener('touchmove', (e) => {
+    if (!isSwiping) return;
+    
+    const x = e.touches[0].clientX;
+    const diff = x - startX;
+    
+    // Make the card follow the finger with some resistance
+    const moveX = diff * 0.8;
+    postcard.style.transform = `translateX(${moveX}px)`;
+    
+    // Add rotation effect for more natural feel
+    const rotation = moveX * 0.05;
+    postcard.style.rotate = `${rotation}deg`;
+    
+    // Make the background color indicate like/dislike
+    if (diff > 50) {
+        // Swiping right (like)
+        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.15)';
+        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+    } else if (diff < -50) {
+        // Swiping left (dislike)
+        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.05)';
+    } else {
+        // Neutral
+        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.05)';
+        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+    }
+});
+
+postcard.addEventListener('touchend', (e) => {
+    if (!isSwiping) return;
+    isSwiping = false;
+    
+    // Reset transition for smooth animation
+    postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
+    
+    // Get the final position
+    endX = e.changedTouches[0].clientX;
+    const diff = endX - startX;
+    
+    if (diff > minSwipeDistance) {
+        // Swiped right (like)
+        postcard.style.transform = 'translateX(150%)';
+        postcard.style.rotate = '10deg';
+        
+        // Wait for animation to complete before handling like
+        setTimeout(() => {
+            handleLike();
+            
+            // Reset postcard position
+            postcard.style.transition = 'none';
+            postcard.style.transform = 'translateX(0)';
+            postcard.style.rotate = '0deg';
+            setTimeout(() => {
+                postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
+            }, 50);
+        }, 300);
+    } else if (diff < -minSwipeDistance) {
+        // Swiped left (dislike)
+        postcard.style.transform = 'translateX(-150%)';
+        postcard.style.rotate = '-10deg';
+        
+        // Wait for animation to complete before handling dislike
+        setTimeout(() => {
+            handleDislike();
+            
+            // Reset postcard position
+            postcard.style.transition = 'none';
+            postcard.style.transform = 'translateX(0)';
+            postcard.style.rotate = '0deg';
+            setTimeout(() => {
+                postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
+            }, 50);
+        }, 300);
+    } else {
+        // Not enough distance, snap back
+        postcard.style.transform = 'translateX(0)';
+        postcard.style.rotate = '0deg';
+    }
+    
+    // Reset background colors
+    likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.05)';
+    dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+});
+
+// Progress bar function
+function updateProgress() {
+    if (!player.duration) return;
+    let progress = (player.currentTime / player.duration) * 100;
+    progressOverlay.style.width = `${progress.toFixed(2)}%`;
+}
+
+player.addEventListener('timeupdate', updateProgress);
+
+player.addEventListener('ended', () => {
+    progressOverlay.style.transition = 'none';
+    progressOverlay.style.width = '0%';
+    setTimeout(() => {
+        progressOverlay.style.transition = 'width 0.5s linear';
+    }, 50);
+});
+
+// Keyboard Controls
+document.addEventListener('keydown', (event) => {
+    switch(event.code) {
+        case 'Space':
+            event.preventDefault();
+            if (player.paused) {
+                player.play();
+            } else {
+                player.pause();
+            }
+            break;
+        case 'ArrowLeft':
+            // Trigger dislike action
+            handleDislike();
+            break;
+        case 'ArrowRight':
+            // Trigger like action
+            handleLike();
+            break;
+    }
+});
+
+// Navigation items functionality
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href === '/liked_music') {
+            e.preventDefault();
+            window.location.href = '/playlist/view';
+            return;
+        }
+        
+        if (href.startsWith('/')) {
+            e.preventDefault();
+            // Remove active class from all items
+            document.querySelectorAll('.nav-item').forEach(i => {
+                i.classList.remove('active');
+            });
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Show toast with the name of the clicked section
+            const sectionName = this.textContent.trim();
+            showToast(`Navigating to ${sectionName}`);
+        }
+    });
+});
+
+// Update nav link text
+document.querySelector('a[href="/liked_music"]').innerHTML = '<i class="fas fa-heart"></i> Your Playlist';
+    </script>
+</body>
+</html>

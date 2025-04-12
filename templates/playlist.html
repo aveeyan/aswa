@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Playlist - aswa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #111;
+            color: white;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+        
+        .track-card:hover .play-overlay {
+            opacity: 1;
+        }
+        
+        .track-card:hover img {
+            filter: brightness(0.7);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 flex justify-between items-center px-8 py-3 bg-black bg-opacity-85 shadow-md">
+        <a href="/" class="text-white text-xl font-bold flex items-center">
+            (a.s.w.a)
+        </a>
+        <div class="flex gap-6">
+            <a href="/" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="/playlist/view" class="text-white bg-white bg-opacity-15 font-semibold px-3 py-2 rounded">
+                <i class="fas fa-heart"></i> Your Playlist
+            </a>
+            <a href="/moodboard" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
+                <i class="fas fa-palette"></i> Moodboard
+            </a>
+            <a href="/analytics" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Header -->
+    <header class="max-w-6xl mx-auto pt-12 pb-6 px-4">
+        <div class="flex items-center gap-6">
+            <div class="w-32 h-32 bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center rounded-lg shadow-lg">
+                <i class="fas fa-heart text-5xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-4xl font-bold mb-2">Your Playlist</h1>
+                <p class="text-gray-400">Your favorite tracks from aswa</p>
+                <div class="flex items-center gap-3 mt-3">
+                    <button id="play-all" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center gap-2">
+                        <i class="fas fa-play"></i> Play All
+                    </button>
+                    <button id="shuffle-play" class="bg-transparent border border-white text-white px-6 py-2 rounded-full flex items-center gap-2 hover:bg-white hover:bg-opacity-10">
+                        <i class="fas fa-random"></i> Shuffle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Now Playing Bar (Fixed at Bottom) -->
+    <div id="now-playing" class="fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 border-t border-gray-800 p-3 hidden">
+        <div class="max-w-6xl mx-auto flex items-center">
+            <img id="np-image" src="" alt="Album Cover" class="h-14 w-14 rounded mr-4">
+            <div class="flex-1">
+                <div id="np-title" class="font-semibold truncate"></div>
+                <div id="np-artist" class="text-gray-400 text-sm"></div>
+                <div class="mt-1 flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <button id="prev-track" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-step-backward"></i>
+                        </button>
+                        <button id="play-pause" class="text-white">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button id="next-track" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-step-forward"></i>
+                        </button>
+                    </div>
+                    <div class="flex-1 bg-gray-700 h-1 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="bg-white h-full w-0 transition-all"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 pb-24">
+        <!-- Filter Controls -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search your playlist" class="bg-gray-800 text-white rounded-full px-4 py-2 pl-10 w-64 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                <select id="sort-by" class="bg-gray-800 text-white rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="date-desc">Recently Added</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                    <option value="artist-asc">Artist (A-Z)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- No tracks message -->
+        <div id="no-tracks" class="hidden text-center py-12">
+            <div class="text-5xl mb-4"><i class="fas fa-music text-gray-600"></i></div>
+            <h3 class="text-2xl font-semibold text-gray-400 mb-2">Your playlist is empty</h3>
+            <p class="text-gray-500 mb-4">Swipe right on tracks you like in the home page to add them here</p>
+            <a href="/" class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-full">
+                Discover Music
+            </a>
+        </div>
+        
+        <!-- Playlist Grid -->
+        <div id="tracks-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+            <!-- Track cards will be generated here -->
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loading" class="flex justify-center py-8">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        </div>
+    </main>
+
+    <!-- Audio Element (Hidden) -->
+    <audio id="audio-player" class="hidden"></audio>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-50"></div>
+    
+    <script>
+        // DOM Elements
+        const tracksContainer = document.getElementById('tracks-container');
+        const loading = document.getElementById('loading');
+        const noTracks = document.getElementById('no-tracks');
+        const searchInput = document.getElementById('search-input');
+        const sortSelect = document.getElementById('sort-by');
+        const audioPlayer = document.getElementById('audio-player');
+        const nowPlaying = document.getElementById('now-playing');
+        const npImage = document.getElementById('np-image');
+        const npTitle = document.getElementById('np-title');
+        const npArtist = document.getElementById('np-artist');
+        const playPauseBtn = document.getElementById('play-pause');
+        const prevTrackBtn = document.getElementById('prev-track');
+        const nextTrackBtn = document.getElementById('next-track');
+        const progressBar = document.getElementById('progress-bar');
+        const playAllBtn = document.getElementById('play-all');
+        const shufflePlayBtn = document.getElementById('shuffle-play');
+        const toast = document.getElementById('toast');
+        
+        // State variables
+        let allTracks = [];
+        let filteredTracks = [];
+        let currentTrackIndex = -1;
+        let isPlaying = false;
+        
+        // Fetch tracks from server
+        async function fetchTracks() {
+            try {
+                const response = await fetch('/playlist');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tracks');
+                }
+                
+                const data = await response.json();
+                allTracks = data;
+                filteredTracks = [...allTracks];
+                
+                loading.classList.add('hidden');
+                
+                if (allTracks.length === 0) {
+                    noTracks.classList.remove('hidden');
+                } else {
+                    renderTracks(allTracks);
+                }
+            } catch (error) {
+                console.error('Error fetching tracks:', error);
+                loading.classList.add('hidden');
+                showToast('Error loading playlist');
+            }
+        }
+        
+        // Render tracks to the grid
+        function renderTracks(tracks) {
+            tracksContainer.innerHTML = '';
+            
+            if (tracks.length === 0) {
+                noTracks.classList.remove('hidden');
+                return;
+            }
+            
+            noTracks.classList.add('hidden');
+            
+            tracks.forEach((track, index) => {
+                const card = document.createElement('div');
+                card.className = 'track-card bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105';
+                card.dataset.index = index;
+                
+                const isCurrentTrack = index === currentTrackIndex;
+                const playPauseIcon = isCurrentTrack && isPlaying ? 'fa-pause' : 'fa-play';
+                
+                if (isCurrentTrack) {
+                    card.classList.add('ring-2', 'ring-green-500');
+                }
+                
+                card.innerHTML = `
+                    <div class="relative">
+                        <img src="${track.cover || '/static/default-album.jpg'}" alt="${track.title}" class="w-full aspect-square object-cover transition-all">
+                        <div class="play-overlay absolute inset-0 bg-black bg-opacity-50 opacity-0 flex items-center justify-center transition-opacity">
+                            <button class="play-btn text-white text-4xl">
+                                <i class="fas ${playPauseIcon}"></i>
+                            </button>
+                        </div>
+                        ${track.is_explicit ? '<span class="absolute top-2 right-2 bg-gray-900 text-white text-xs px-1.5 py-0.5 rounded">E</span>' : ''}
+                    </div>
+                    <div class="p-3">
+                        <div class="font-semibold text-white truncate">${track.title}</div>
+                        <div class="text-gray-400 text-sm truncate">${track.artist}</div>
+                        <div class="flex justify-between items-center mt-2">
+                            <a href="${track.link}" target="_blank" class="text-gray-400 hover:text-white text-sm">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <button class="remove-track text-gray-400 hover:text-red-500 text-sm" data-track-id="${track.track_id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                tracksContainer.appendChild(card);
+                
+                // Add play/pause toggle event listener
+                const playBtn = card.querySelector('.play-btn');
+                playBtn.addEventListener('click', () => {
+                    toggleTrack(index);
+                });
+                
+                // Add remove event listener
+                const removeBtn = card.querySelector('.remove-track');
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeTrack(track.track_id);
+                });
+            });
+        }
+        
+        // Toggle play/pause for a track
+        function toggleTrack(index) {
+            if (index >= filteredTracks.length) return;
+            
+            // If this is the currently playing track, toggle play/pause
+            if (index === currentTrackIndex) {
+                togglePlayPause();
+                
+                // Update the play button icon on the card
+                const activeCard = document.querySelector(`.track-card[data-index="${index}"]`);
+                if (activeCard) {
+                    const playBtnIcon = activeCard.querySelector('.play-btn i');
+                    if (isPlaying) {
+                        playBtnIcon.classList.remove('fa-play');
+                        playBtnIcon.classList.add('fa-pause');
+                    } else {
+                        playBtnIcon.classList.remove('fa-pause');
+                        playBtnIcon.classList.add('fa-play');
+                    }
+                }
+            } else {
+                // This is a different track, start playing it
+                playTrack(index);
+            }
+        }
+        
+        // Play a track
+        function playTrack(index) {
+            if (index >= filteredTracks.length) return;
+            
+            const track = filteredTracks[index];
+            audioPlayer.src = track.preview;
+            audioPlayer.play();
+            
+            currentTrackIndex = index;
+            isPlaying = true;
+            
+            // Update now playing bar
+            nowPlaying.classList.remove('hidden');
+            npImage.src = track.cover;
+            npTitle.textContent = track.title;
+            npArtist.textContent = track.artist;
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            
+            // Update all track cards to show which is playing
+            updateTrackCardStates();
+        }
+        
+        // Update all track card states (play/pause icons and active state)
+        function updateTrackCardStates() {
+            document.querySelectorAll('.track-card').forEach(card => {
+                const cardIndex = parseInt(card.dataset.index);
+                const playBtnIcon = card.querySelector('.play-btn i');
+                
+                // Clear active state from all cards
+                card.classList.remove('ring-2', 'ring-green-500');
+                
+                // Set play/pause icon for each card
+                if (cardIndex === currentTrackIndex) {
+                    // This is the current track
+                    card.classList.add('ring-2', 'ring-green-500');
+                    
+                    if (isPlaying) {
+                        playBtnIcon.classList.remove('fa-play');
+                        playBtnIcon.classList.add('fa-pause');
+                    } else {
+                        playBtnIcon.classList.remove('fa-pause');
+                        playBtnIcon.classList.add('fa-play');
+                    }
+                    
+                    // Scroll into view if needed
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    // Not the current track, always show play icon
+                    playBtnIcon.classList.remove('fa-pause');
+                    playBtnIcon.classList.add('fa-play');
+                }
+            });
+        }
+        
+        // Toggle play/pause
+        function togglePlayPause() {
+            if (currentTrackIndex === -1 && filteredTracks.length > 0) {
+                // Start playing the first track if none is playing
+                playTrack(0);
+                return;
+            }
+            
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                isPlaying = true;
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                audioPlayer.pause();
+                isPlaying = false;
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+            
+            // Update all track card states
+            updateTrackCardStates();
+        }
+        
+        // Play next track
+        function playNextTrack() {
+            if (filteredTracks.length === 0) return;
+            
+            let nextIndex = currentTrackIndex + 1;
+            if (nextIndex >= filteredTracks.length) {
+                nextIndex = 0; // Loop back to the beginning
+            }
+            
+            playTrack(nextIndex);
+        }
+        
+        // Play previous track
+        function playPreviousTrack() {
+            if (filteredTracks.length === 0) return;
+            
+            let prevIndex = currentTrackIndex - 1;
+            if (prevIndex < 0) {
+                prevIndex = filteredTracks.length - 1; // Loop to the end
+            }
+            
+            playTrack(prevIndex);
+        }
+        
+        // Remove a track from the playlist
+        async function removeTrack(trackId) {
+            try {
+                const response = await fetch(`/remove_track/${trackId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to remove track');
+                }
+                
+                const data = await response.json();
+                showToast(data.message || 'Track removed');
+                
+                // Remove from arrays
+                allTracks = allTracks.filter(t => t.track_id !== trackId);
+                filteredTracks = filteredTracks.filter(t => t.track_id !== trackId);
+                
+                // Refresh display
+                renderTracks(filteredTracks);
+                
+                // If the current track was removed, play the next one
+                if (currentTrackIndex !== -1) {
+                    const currentTrackId = filteredTracks[currentTrackIndex]?.track_id;
+                    if (currentTrackId === trackId) {
+                        if (filteredTracks.length > 0) {
+                            playNextTrack();
+                        } else {
+                            // No more tracks to play
+                            audioPlayer.pause();
+                            nowPlaying.classList.add('hidden');
+                            currentTrackIndex = -1;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error removing track:', error);
+                showToast('Error removing track');
+            }
+        }
+        
+        // Filter tracks based on search
+        function filterTracks() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            
+            if (searchTerm === '') {
+                filteredTracks = [...allTracks];
+            } else {
+                filteredTracks = allTracks.filter(track => 
+                    track.title.toLowerCase().includes(searchTerm) ||
+                    track.artist.toLowerCase().includes(searchTerm) ||
+                    track.album.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            sortTracks();
+            renderTracks(filteredTracks);
+        }
+        
+        // Sort tracks based on selected option
+        function sortTracks() {
+            const sortOption = sortSelect.value;
+            
+            switch(sortOption) {
+                case 'date-desc':
+                    filteredTracks.sort((a, b) => new Date(b.saved_at) - new Date(a.saved_at));
+                    break;
+                case 'date-asc':
+                    filteredTracks.sort((a, b) => new Date(a.saved_at) - new Date(b.saved_at));
+                    break;
+                case 'title-asc':
+                    filteredTracks.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'artist-asc':
+                    filteredTracks.sort((a, b) => a.artist.localeCompare(b.artist));
+                    break;
+            }
+            
+            renderTracks(filteredTracks);
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            if (!audioPlayer.duration) return;
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Show toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+            }, 3000);
+        }
+        
+        // Event Listeners
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        nextTrackBtn.addEventListener('click', playNextTrack);
+        prevTrackBtn.addEventListener('click', playPreviousTrack);
+        
+        audioPlayer.addEventListener('timeupdate', updateProgress);
+        
+        audioPlayer.addEventListener('ended', () => {
+            playNextTrack();
+        });
+        
+        // Update isPlaying state when audio pauses/plays
+        audioPlayer.addEventListener('play', () => {
+            isPlaying = true;
+            updateTrackCardStates();
+        });
+        
+        audioPlayer.addEventListener('pause', () => {
+            isPlaying = false;
+            updateTrackCardStates();
+        });
+        
+        searchInput.addEventListener('input', filterTracks);
+        sortSelect.addEventListener('change', sortTracks);
+        
+        playAllBtn.addEventListener('click', () => {
+            if (filteredTracks.length > 0) {
+                playTrack(0);
+            }
+        });
+        
+        shufflePlayBtn.addEventListener('click', () => {
+            if (filteredTracks.length > 0) {
+                const randomIndex = Math.floor(Math.random() * filteredTracks.length);
+                playTrack(randomIndex);
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', fetchTracks);
+    </script>
+</body>
+</html>
