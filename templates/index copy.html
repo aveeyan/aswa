@@ -17,29 +17,11 @@
     </div>
     <!-- Navigation Links -->
     <div class="flex gap-4 items-center mr-6">
-        {% if current_user %}
-        <!-- Logged-in user display -->
-        <div class="flex items-center gap-3">
-            <div class="text-white/85 font-medium" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
-                <i class="fas fa-user mr-1"></i>
-                <span>{{ current_user.first_name or current_user.email }}</span>
-            </div>
-            <a href="/profile" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
-                <i class="fas fa-user-circle"></i>
-                <span>PROFILE</span>
-            </a>
-            <a href="/logout" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>LOGOUT</span>
-            </a>
-        </div>
-        {% else %}
         <a href="/login" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
             <i class="fas fa-sign-in-alt"></i>
             <span>LOGIN</span>
         </a>
-        {% endif %}
-        <a href="/playlist/view" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+        <a href="/liked_music" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
             <i class="fas fa-heart"></i>
             <span>PLAYLIST</span>
         </a>
@@ -59,111 +41,96 @@
     </div>
 </nav>
 
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
-            {% for category, message in messages %}
-                <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded mb-2 flex justify-between items-center shadow-md">
-                    <span>{{ message }}</span>
-                    <button class="text-{{ 'green' if category == 'success' else 'red' }}-700 hover:text-{{ 'green' if category == 'success' else 'red' }}-900" onclick="this.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}
-    
-<div id="background-container" class="absolute top-0 left-0 w-full h-full bg-center bg-cover bg-no-repeat blur-md opacity-50 z-[1]" style="background-image: url('{{ album_image }}');"></div>
-    
-<div class="flex-1 flex justify-center items-center relative z-[5]">
-    <!-- Skip Area (Left) - Updated with higher contrast background -->
-    <div id="dislike-area" class="absolute top-0 h-full w-1/2 left-0 z-[5] cursor-pointer transition-colors duration-300 bg-red-500/15 hover:bg-red-500/40 group">
-        <!-- Skip overlay (top-left) -->
-        <div class="absolute top-8 left-8 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <i class="fas fa-times text-7xl text-white"></i>
-            <span class="mt-2 text-xl font-normal text-white">SKIP</span>
-        </div>
-    </div>
 
-    <!-- Like Area (Right) - Updated with higher contrast background -->
-    <div id="like-area" class="absolute top-0 h-full w-1/2 right-0 z-[5] cursor-pointer transition-colors duration-300 bg-green-500/15 hover:bg-green-500/40 group">
-        <!-- Like overlay (top-right) -->
-        <div class="absolute top-8 right-8 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <i class="fas fa-heart text-7xl text-white"></i>
-            <span class="mt-2 text-xl font-normal text-white">LIKE</span>
-        </div>
-    </div>
-
-    <!-- Postcard Content -->
-    <div class="relative w-4/5 max-w-md flex flex-col items-center z-10 my-auto mx-auto">
-        <div id="postcard" class="w-full bg-white/90 shadow-xl rounded-2xl overflow-hidden relative z-10 flex flex-col text-left select-none">
-            
-            <!-- Album cover -->
-            <div class="w-full h-auto overflow-hidden relative">
-                <img id="album-cover" draggable="false" src="{{ album_image }}" alt="Album Cover" class="w-full aspect-square object-cover select-none">
+    
+    <div id="background-container" class="absolute top-0 left-0 w-full h-full bg-center bg-cover bg-no-repeat blur-md opacity-50 z-[1]" style="background-image: url('{{ album_image }}');"></div>
+    
+    <div class="flex-1 flex justify-center items-center relative z-[5]">
+        <!-- Skip Area (Left) - Updated with higher contrast background -->
+        <div id="dislike-area" class="absolute top-0 h-full w-1/2 left-0 z-[5] cursor-pointer transition-colors duration-300 bg-red-500/15 hover:bg-red-500/40 group">
+            <!-- Skip overlay (top-left) -->
+            <div class="absolute top-8 left-8 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <i class="fas fa-times text-7xl text-white"></i>
+                <span class="mt-2 text-xl font-normal text-white">SKIP</span>
             </div>
-
-            <!-- Text content -->
-            <div class="flex flex-col justify-between p-6 bg-gradient-to-b from-white/90 to-white/95 w-full items-start text-left">
-                <div class="flex-1 flex flex-col justify-center space-y-3 w-full">
-                    <div id="track-title" class="text-2xl font-semibold text-gray-800 leading-tight tracking-tight">
-                        {{ album_title }}
-                    </div>
-                    <div id="artist-name" class="text-xl font-normal text-gray-700">
-                        {{ artists }}
-                    </div>
-                    <div id="album-details" class="text-base text-gray-500">
-                        {{ album_details }}
-                    </div>
+        </div>
+    
+        <!-- Like Area (Right) - Updated with higher contrast background -->
+        <div id="like-area" class="absolute top-0 h-full w-1/2 right-0 z-[5] cursor-pointer transition-colors duration-300 bg-green-500/15 hover:bg-green-500/40 group">
+            <!-- Like overlay (top-right) -->
+            <div class="absolute top-8 right-8 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <i class="fas fa-heart text-7xl text-white"></i>
+                <span class="mt-2 text-xl font-normal text-white">LIKE</span>
+            </div>
+        </div>
+    
+        <!-- Postcard Content -->
+        <div class="relative w-4/5 max-w-md flex flex-col items-center z-10 my-auto mx-auto">
+            <div id="postcard" class="w-full bg-white/90 shadow-xl rounded-2xl overflow-hidden relative z-10 flex flex-col text-left select-none">
+                
+                <!-- Album cover -->
+                <div class="w-full h-auto overflow-hidden relative">
+                    <img id="album-cover" draggable="false" src="{{ album_image }}" alt="Album Cover" class="w-full aspect-square object-cover select-none">
                 </div>
 
-                <!-- Deezer logo -->
-                <div class="flex justify-between items-center w-full mt-5 pt-4 border-t border-gray-200">
-                    <a id="album-link" href="{{ album_link }}" target="_blank" class="flex items-center text-blue-600 hover:text-blue-800">
-                        <img class="h-6 pointer-events-none select-none" 
-                            src="https://upload.wikimedia.org/wikipedia/commons/7/75/Deezer_logo%2C_2023.svg" 
-                            alt="Deezer">
-                        <span class="text-xs ml-2 text-gray-500">Listen on Deezer</span>
-                    </a>
-                    
-                    <!-- Explicit Indicator - Fixed -->
-                    <div id="is-explicit" class="text-xs font-bold px-2 py-1 rounded 
-                        {% if album_isexplicit %}
-                            bg-red-100 text-red-700
-                        {% else %}
-                            bg-gray-100 text-gray-300
-                        {% endif %}">
-                        EXPLICIT
+                <!-- Text content -->
+                <div class="flex flex-col justify-between p-6 bg-gradient-to-b from-white/90 to-white/95 w-full items-start text-left">
+                    <div class="flex-1 flex flex-col justify-center space-y-3 w-full">
+                        <div id="track-title" class="text-2xl font-semibold text-gray-800 leading-tight tracking-tight">
+                            {{ album_title }}
+                        </div>
+                        <div id="artist-name" class="text-xl font-normal text-gray-700">
+                            {{ artists }}
+                        </div>
+                        <div id="album-details" class="text-base text-gray-500">
+                            {{ album_details }}
+                        </div>
+                    </div>
+
+                    <!-- Deezer logo -->
+                    <div class="flex justify-between items-center w-full mt-5 pt-4 border-t border-gray-200">
+                        <a id="album-link" href="{{ album_link }}" target="_blank" class="flex items-center text-blue-600 hover:text-blue-800">
+                            <img class="h-6 pointer-events-none select-none" 
+                                src="https://upload.wikimedia.org/wikipedia/commons/7/75/Deezer_logo%2C_2023.svg" 
+                                alt="Deezer">
+                            <span class="text-xs ml-2 text-gray-500">Listen on Deezer</span>
+                        </a>
+                        
+                        <!-- Explicit Indicator - Fixed -->
+                        <div id="is-explicit" class="text-xs font-bold px-2 py-1 rounded 
+                            {% if album_isexplicit %}
+                                bg-red-100 text-red-700
+                            {% else %}
+                                bg-gray-100 text-gray-300
+                            {% endif %}">
+                            EXPLICIT
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Audio -->
-            {% if not test_mode %}
-            <audio id="preview-player" src="{{ preview_url }}" autoplay loop class="w-full"></audio>
-            <div class="w-full h-1 bg-gray-200">
-                <div id="audio-progress" class="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-0"></div>
+                <!-- Audio -->
+                {% if not test_mode %}
+                <audio id="preview-player" src="{{ preview_url }}" autoplay loop class="w-full"></audio>
+                <div class="w-full h-1 bg-gray-200">
+                    <div id="audio-progress" class="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-0"></div>
+                </div>
+                {% else %}
+                <div id="test-mode-notice" class="absolute bottom-2 right-2 bg-yellow-400 text-black px-2 py-1 text-xs rounded font-medium">
+                    Test Mode: Audio Disabled
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div id="test-mode-notice" class="absolute bottom-2 right-2 bg-yellow-400 text-black px-2 py-1 text-xs rounded font-medium">
-                Test Mode: Audio Disabled
-            </div>
-            {% endif %}
         </div>
     </div>
-</div>
     
-<div id="progress-overlay" class="absolute bottom-0 left-0 w-0 h-12 blur-[0.5px] bg-white/40 transition-[width] duration-[0.4s] ease-linear"></div>
-<div id="toast" class="fixed bottom-[30px] left-1/2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-100"></div>
+    <div id="progress-overlay" class="absolute bottom-0 left-0 w-0 h-12 blur-[0.5px] bg-white/40 transition-[width] duration-[0.4s] ease-linear"></div>
+    <div id="toast" class="fixed bottom-[30px] left-1/2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-100"></div>
 
-<script>
-// Tracks data from server
+    <script>
+        // Tracks data from server
 const tracks = {{ tracks | tojson | safe }};
 let currentTrackIndex = 0;
 const testMode = {{ test_mode|tojson }};
-const isLoggedIn = {{ 'true' if current_user else 'false' }};
 
 // DOM Elements
 const player = document.getElementById('preview-player');
@@ -262,17 +229,6 @@ const doubleClickDelay = 300; // milliseconds
 
 async function handleLike() {
     try {
-        // Check if user is logged in
-        if (!isLoggedIn) {
-            showToast('Please login to save tracks to your playlist');
-            // Redirect to login page after a brief delay
-            setTimeout(() => {
-                const testParam = testMode ? '?test_mode=true' : '';
-                window.location.href = '/login' + testParam;
-            }, 1500);
-            return;
-        }
-        
         const currentTrack = tracks[currentTrackIndex];
         // Make sure we have the current track
         if (!currentTrack) {
@@ -326,11 +282,7 @@ async function handleLike() {
         setTimeout(() => {
             updateTrackInfo(track);
             // Reset currentTrack to the new track
-            currentTrackIndex = tracks.findIndex(t => t.id_deezer === track.id_deezer);
-            if (currentTrackIndex === -1) {
-                tracks.push(track);
-                currentTrackIndex = tracks.length - 1;
-            }
+            currentTrack = tracks[currentTrackIndex];
         }, 300);
     } catch (error) {
         console.error('Error saving or fetching track:', error);
@@ -365,12 +317,8 @@ async function handleDislike() {
         // Wait for animation to complete, then update track info
         setTimeout(() => {
             updateTrackInfo(track);
-            // Update the current track index
-            currentTrackIndex = tracks.findIndex(t => t.id_deezer === track.id_deezer);
-            if (currentTrackIndex === -1) {
-                tracks.push(track);
-                currentTrackIndex = tracks.length - 1;
-            }
+            // Reset currentTrack to the new track
+            currentTrack = tracks[currentTrackIndex];
         }, 300);
         
         showToast('Track skipped!');
@@ -461,15 +409,13 @@ postcard.addEventListener('touchend', (e) => {
         setTimeout(() => {
             handleLike();
             
-            // Reset postcard position - only if we don't need to redirect (if not logged in)
-            if (isLoggedIn) {
-                postcard.style.transition = 'none';
-                postcard.style.transform = 'translateX(0)';
-                postcard.style.rotate = '0deg';
-                setTimeout(() => {
-                    postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
-                }, 50);
-            }
+            // Reset postcard position
+            postcard.style.transition = 'none';
+            postcard.style.transform = 'translateX(0)';
+            postcard.style.rotate = '0deg';
+            setTimeout(() => {
+                postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
+            }, 50);
         }, 300);
     } else if (diff < -minSwipeDistance) {
         // Swiped left (dislike)
@@ -579,24 +525,19 @@ document.querySelectorAll('nav a').forEach(item => {
     });
 });
 
-// Auto-close flash messages after 5 seconds
+// REMOVED: The line below was changing "PLAYLIST" to "Your Playlist"
+// document.querySelector('a[href="/liked_music"]').innerHTML = '<i class="fas fa-heart"></i> Your Playlist';
+
+// When the page loads, ensure the background is properly set from the initial album cover
 document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        const flashMessages = document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]');
-        flashMessages.forEach(message => {
-            message.style.transition = 'opacity 0.5s ease';
-            message.style.opacity = '0';
-            setTimeout(() => message.remove(), 500);
-        });
-    }, 5000);
-    
     // Make sure the background image is properly set on page load
     const initialCoverUrl = albumCover.src;
     if (initialCoverUrl) {
         backgroundContainer.style.backgroundImage = `url('${initialCoverUrl}')`;
     }
     
-    // Make sure the initial album link is set correctly
+    // Fix 3: Make sure the initial album link is set correctly
+    // Get the current track from the tracks array if it exists
     if (tracks.length > 0) {
         const currentTrack = tracks[currentTrackIndex];
         if (currentTrack && currentTrack.link) {
@@ -604,6 +545,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-</script>
+    </script>
 </body>
 </html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aswa: Your Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="m-0 h-screen flex flex-col overflow-hidden relative bg-black/50 font-sans">
+
+<!-- Navigation Bar -->
+<nav class="relative flex justify-between items-center py-0 px-0 bg-[rgba(20,20,20,0.85)] shadow-md z-50">
+    <!-- White ASWA Logo Section -->
+    <div class="h-full bg-white px-6 py-3">
+        <a href="/" class="text-black text-2xl font-bold select-none tracking-widest" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;">( a . s . w . a )</a>
+    </div>
+    <!-- Navigation Links -->
+    <div class="flex gap-4 items-center mr-6">
+        {% if current_user %}
+        <!-- Logged-in user display -->
+        <div class="flex items-center gap-3">
+            <div class="text-white/85 font-medium" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-user mr-1"></i>
+                <span>{{ current_user.first_name or current_user.email }}</span>
+            </div>
+            <a href="/profile" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2 bg-white/15 font-semibold" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-user-circle"></i>
+                <span>PROFILE</span>
+            </a>
+            <a href="/logout" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>LOGOUT</span>
+            </a>
+        </div>
+        {% else %}
+        <a href="/login" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>LOGIN</span>
+        </a>
+        {% endif %}
+        <a href="/playlist/view" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-heart"></i>
+            <span>PLAYLIST</span>
+        </a>
+        <a href="/moodboard" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-palette"></i>
+            <span>MOOD</span>
+        </a>
+        <a href="/analytics" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-chart-line"></i>
+            <span>STATS</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+            {% for category, message in messages %}
+                <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded mb-2 flex justify-between items-center shadow-md">
+                    <span>{{ message }}</span>
+                    <button class="text-{{ 'green' if category == 'success' else 'red' }}-700 hover:text-{{ 'green' if category == 'success' else 'red' }}-900" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Gradient Background -->
+<div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-black opacity-70 z-[1]"></div>
+
+<!-- Profile Container -->
+<div class="flex-1 flex justify-center items-center relative z-[5] p-6 overflow-y-auto">
+    <div class="w-full max-w-2xl bg-white/90 shadow-xl rounded-2xl overflow-hidden relative z-10">
+        
+        <!-- Profile Header -->
+        <div class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-8 px-8 flex items-center">
+            <div class="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center text-white text-4xl">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="ml-6 text-white">
+                <h1 class="text-2xl font-bold tracking-tight">{{ current_user.first_name }} {{ current_user.last_name }}</h1>
+                <p class="text-white/80">{{ current_user.email }}</p>
+                <p class="text-white/70 text-sm mt-1">Member since {{ current_user.created_at.strftime('%B %Y') }}</p>
+            </div>
+        </div>
+        
+        <!-- Profile Content -->
+        <div class="p-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-semibold text-gray-800">Your Profile</h2>
+                <button id="edit-profile-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
+                    <i class="fas fa-edit mr-2"></i> Edit Profile
+                </button>
+            </div>
+            
+            <!-- Profile Details View (Default) -->
+            <div id="profile-details" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- First Name -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500 mb-1">First Name</p>
+                        <p class="text-lg text-gray-800">{{ current_user.first_name or 'Not set' }}</p>
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500 mb-1">Last Name</p>
+                        <p class="text-lg text-gray-800">{{ current_user.last_name or 'Not set' }}</p>
+                    </div>
+                </div>
+                
+                <!-- Email -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 mb-1">Email Address</p>
+                    <p class="text-lg text-gray-800">{{ current_user.email }}</p>
+                </div>
+                
+                <!-- Account Stats -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-500 mb-1">Account Statistics</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-3">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-blue-600">{{ current_user.tracks|length if current_user.tracks else 0 }}</p>
+                            <p class="text-sm text-gray-600">Saved Tracks</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-purple-600">{{ current_user.last_login.strftime('%d %b') }}</p>
+                            <p class="text-sm text-gray-600">Last Login</p>
+                        </div>
+                        <div class="text-center md:col-span-1">
+                            <p class="text-2xl font-bold text-green-600">Active</p>
+                            <p class="text-sm text-gray-600">Status</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Edit Form (Hidden by default) -->
+            <form id="profile-edit-form" class="hidden space-y-6" method="POST" action="/profile/update">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- First Name -->
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ current_user.first_name or '' }}" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ current_user.last_name or '' }}" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ current_user.email }}" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <!-- Password Change Section -->
+                <div class="pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4">Change Password</h3>
+                    
+                    <!-- Current Password -->
+                    <div class="mb-4">
+                        <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- New Password -->
+                        <div>
+                            <label for="new_password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                            <input type="password" id="new_password" name="new_password" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <!-- Confirm New Password -->
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Leave password fields empty if you don't want to change it.</p>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-edit-btn" class="py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors duration-200">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Additional Info Footer -->
+        <div class="bg-gray-50 p-6 border-t border-gray-200">
+            <h3 class="text-lg font-medium text-gray-800 mb-3">Your ASWA Experience</h3>
+            <p class="text-gray-600">Discover music that matches your taste. We'll learn what you like over time and provide better recommendations.</p>
+            <div class="mt-4 flex justify-center">
+                <a href="/" class="text-blue-600 hover:text-blue-800 flex items-center">
+                    <i class="fas fa-music mr-2"></i> Continue Discovering Music
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const profileDetails = document.getElementById('profile-details');
+    const profileEditForm = document.getElementById('profile-edit-form');
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const toast = document.getElementById('toast') || createToastElement();
+    
+    // Toggle between view and edit modes
+    editProfileBtn.addEventListener('click', function() {
+        profileDetails.classList.add('hidden');
+        profileEditForm.classList.remove('hidden');
+    });
+    
+    cancelEditBtn.addEventListener('click', function() {
+        profileEditForm.classList.add('hidden');
+        profileDetails.classList.remove('hidden');
+    });
+    
+    // Password validation
+    profileEditForm.addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (newPassword && newPassword !== confirmPassword) {
+            e.preventDefault();
+            showToast('New passwords do not match');
+        }
+    });
+    
+    // Auto-close flash messages after 5 seconds
+    setTimeout(() => {
+        const flashMessages = document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]');
+        flashMessages.forEach(message => {
+            message.style.transition = 'opacity 0.5s ease';
+            message.style.opacity = '0';
+            setTimeout(() => message.remove(), 500);
+        });
+    }, 5000);
+    
+    // Toast functions
+    function createToastElement() {
+        const toastEl = document.createElement('div');
+        toastEl.id = 'toast';
+        toastEl.className = 'fixed bottom-[30px] left-1/2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-100';
+        document.body.appendChild(toastEl);
+        return toastEl;
+    }
+    
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('opacity-100');
+        setTimeout(() => {
+            toast.classList.remove('opacity-100');
+        }, 3000);
+    }
+});
+</script>
+</body>
+</html>

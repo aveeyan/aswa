@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}aswa: Music Recommendation System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="m-0 h-screen flex flex-col overflow-hidden relative bg-black/50 font-sans">
+
+    <!-- Include the navbar -->
+    {% include 'navbar.html' %}
+
+    <!-- Main content block -->
+    {% block content %}{% endblock %}
+
+    <!-- Common scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
