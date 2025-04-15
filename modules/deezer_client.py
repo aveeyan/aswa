@@ -28,6 +28,9 @@ class DeezerClient:
         self.track_history = []
         self.current_track_index = -1
         
+        # Track cache for quick retrieval
+        self.track_cache = []
+        
         # Track IDs we've already seen to avoid duplicates
         self.seen_track_ids = set()
         
@@ -49,6 +52,7 @@ class DeezerClient:
         """Create a fallback track if we can't get anything from API"""
         fallback = {
             "id_deezer": 0,
+            "track_id": 0,  # Add track_id for consistency with app.py
             "title": "Random Music",
             "link": "https://www.deezer.com",
             "is_explicit": False,
@@ -59,8 +63,27 @@ class DeezerClient:
             "cover_xl": "https://e-cdns-images.dzcdn.net/images/cover/1000x1000-000000-80-0-0.jpg"
         }
         self.track_history = [fallback]
+        self.track_cache = [fallback]
         self.current_track_index = 0
         return fallback
+
+    def get_cached_tracks(self):
+        """Return cached tracks - used by app.py when tracks are preloaded"""
+        if self.track_cache and len(self.track_cache) > 0:
+            logger.info(f"Returning {len(self.track_cache)} cached tracks")
+            return self.track_cache
+        elif self.track_history and len(self.track_history) > 0:
+            logger.info(f"No tracks in cache, returning {len(self.track_history)} tracks from history")
+            self.track_cache = self.track_history.copy()
+            return self.track_cache
+        else:
+            logger.warning("No cached tracks available, preloading new tracks")
+            try:
+                tracks = self._preload_tracks(10)
+                return tracks
+            except Exception as e:
+                logger.error(f"Error getting cached tracks: {e}")
+                return [self._fallback_track()]
 
     def _get_random_genre(self, electronic_bias=0.4, popular_bias=0.6):
         """Get a random genre with adjusted bias"""
@@ -94,6 +117,9 @@ class DeezerClient:
                 track = self.get_random_track(add_to_history=False, preloading=True)
                     
                 if track:
+                    # Add track_id field for consistency with app.py
+                    if "track_id" not in track and "id_deezer" in track:
+                        track["track_id"] = track["id_deezer"]
                     tracks.append(track)
             except Exception as e:
                 logger.error(f"Error during track preloading (attempt {attempts}): {e}")
@@ -103,48 +129,109 @@ class DeezerClient:
         
         logger.info(f"Successfully preloaded {len(tracks)} tracks")
         
-        # If this is initial load, set them as track history
+        # If this is initial load, set them as track history and cache
         if not self.track_history:
             self.track_history = tracks if tracks else [self._fallback_track()]
+            self.track_cache = self.track_history.copy()
             self.current_track_index = 0
+        else:
+            # Update cache with fresh tracks
+            self.track_cache = tracks if tracks else self.track_cache
         
         return tracks
 
-    def get_multiple_tracks(self, count=10):
+    def get_multiple_tracks(self, count=10, test_mode=False):
         """Fetch multiple unique random tracks"""
         try:
-            logger.info(f"Getting {count} multiple tracks...")
+            logger.info(f"Getting {count} multiple tracks (test_mode={test_mode})...")
             # Clear existing history if any
             self.track_history = []
             self.current_track_index = -1
+            
+            # If in test mode, return placeholder tracks
+            if test_mode:
+                logger.info("Using test mode tracks")
+                test_tracks = []
+                for i in range(count):
+                    test_track = self._create_test_track(i)
+                    test_tracks.append(test_track)
+                self.track_history = test_tracks
+                self.track_cache = test_tracks.copy()
+                self.current_track_index = 0
+                return test_tracks
             
             # Get fresh tracks
             tracks = self._preload_tracks(count)
             if not tracks:  # If we couldn't get any tracks
                 tracks = [self._fallback_track()]
+            
+            # Update track cache
+            self.track_cache = tracks
                 
             return tracks
         except Exception as e:
             logger.error(f"Error in get_multiple_tracks: {e}")
             return [self._fallback_track()]
 
-    def get_next_track(self):
+    def _create_test_track(self, index):
+        """Create a test track with predictable data"""
+        genres = ["Pop", "Rock", "Electronic", "Hip Hop", "Classical", "Jazz", "Country"]
+        artists = ["Test Artist A", "Test Artist B", "Test Artist C", "Test Artist D"]
+        
+        genre = genres[index % len(genres)]
+        artist = artists[index % len(artists)]
+        
+        track_id = 1000000 + index
+        
+        return {
+            "id_deezer": track_id,
+            "track_id": track_id,  # Add track_id for consistency with app.py
+            "title": f"Test Track {index+1}",
+            "link": "https://www.deezer.com/test",
+            "is_explicit": False,
+            "preview": "https://cdns-preview-e.dzcdn.net/stream/test.mp3",
+            "artist": artist,
+            "album": f"Test Album - {genre}",
+            "cover": "https://e-cdns-images.dzcdn.net/images/cover/1000x1000-000000-80-0-0.jpg",
+            "cover_xl": "https://e-cdns-images.dzcdn.net/images/cover/1000x1000-000000-80-0-0.jpg"
+        }
+
+    def get_next_track(self, test_mode=False):
         """Get the next track in the history or a new random track if we're at the end"""
         try:
-            logger.info("Getting next track...")
+            logger.info(f"Getting next track (test_mode={test_mode})...")
+            
+            # If we're in test mode and have no test tracks, create some
+            if test_mode and (not self.track_history or self.current_track_index == -1):
+                test_tracks = []
+                for i in range(5):  # Create 5 test tracks
+                    test_track = self._create_test_track(i)
+                    test_tracks.append(test_track)
+                self.track_history = test_tracks
+                self.track_cache = test_tracks.copy()
+                self.current_track_index = 0
+                return self.track_history[0]
+            
             # If we're near the end, try to preload more tracks
             if len(self.track_history) > 0 and self.current_track_index >= len(self.track_history) - 3:
                 try:
                     # Get some new tracks in the background
                     new_tracks = []
-                    for _ in range(5):  # Reduced to 5 for faster response
-                        track = self.get_random_track(add_to_history=False)
+                    for i in range(5):  # Reduced to 5 for faster response
+                        if test_mode:
+                            track = self._create_test_track(len(self.track_history) + i)
+                        else:
+                            track = self.get_random_track(add_to_history=False)
+                            if "track_id" not in track and "id_deezer" in track:
+                                track["track_id"] = track["id_deezer"]
                         if track:
                             new_tracks.append(track)
                     
                     # Append them to history
                     if new_tracks:
                         self.track_history.extend(new_tracks)
+                        # Also update cache
+                        self.track_cache = self.track_history.copy()
                         logger.info(f"Added {len(new_tracks)} new tracks to history")
                 except Exception as e:
                     logger.error(f"Error preloading new tracks: {e}")
@@ -157,10 +244,19 @@ class DeezerClient:
                     return self.track_history[self.current_track_index]
             
             # If we somehow still don't have tracks, get a fresh one
-            new_track = self.get_random_track(add_to_history=False)
+            if test_mode:
+                new_track = self._create_test_track(0)
+            else:
+                new_track = self.get_random_track(add_to_history=False)
+                # Ensure track_id is present for compatibility
+                if new_track and "track_id" not in new_track and "id_deezer" in new_track:
+                    new_track["track_id"] = new_track["id_deezer"]
+                
             if new_track:
                 self.track_history.append(new_track)
                 self.current_track_index = len(self.track_history) - 1
+                # Update cache
+                self.track_cache.append(new_track)
                 return new_track
                 
             # Last resort fallback
@@ -191,6 +287,74 @@ class DeezerClient:
         except Exception as e:
             logger.error(f"Error in get_previous_track: {e}")
             return self._fallback_track()
+
+    # Add these methods to your DeezerClient class:
+
+    def get_current_track_index(self):
+        """Return the current track index"""
+        return self.current_track_index
+
+    def get_current_track(self):
+        """Get the current track without changing position"""
+        if not self.track_history or len(self.track_history) == 0 or self.current_track_index < 0:
+            return self._fallback_track()
+        return self.track_history[self.current_track_index]
+
+    def get_random_track(self, add_to_history=True, preloading=False):
+        """Fetch a truly random track using various randomization strategies"""
+        strategy_attempts = 0
+        max_strategy_attempts = 3  # Reduced to avoid getting stuck
+        
+        strategies = [
+            self._random_by_artist,
+            self._random_by_genre,
+            self._random_by_letter,
+            # These two are less reliable, so added as fallbacks
+            self._random_by_year,
+            self._random_by_combined
+        ]
+        
+        # Shuffle strategies for even more randomness
+        random.shuffle(strategies)
+        
+        # Try to get a track first with more reliable strategies
+        while strategy_attempts < max_strategy_attempts:
+            strategy_attempts += 1
+            
+            for strategy in strategies[:3]:  # Try the first 3 shuffled strategies
+                try:
+                    track = strategy()
+                    if track:
+                        # Add track_id field to maintain consistency with app.py
+                        if "track_id" not in track and "id_deezer" in track:
+                            track["track_id"] = track["id_deezer"]
+                            
+                        # If this is a standalone request and we want to add to history
+                        if add_to_history and not preloading:
+                            self.track_history.append(track)
+                            self.current_track_index = len(self.track_history) - 1
+                            # Also update cache
+                            self.track_cache.append(track)
+                        
+                        return track
+                except Exception as e:
+                    logger.error(f"Strategy error: {e}")
+                
+                # Small delay to avoid API rate limits
+                time.sleep(self.request_delay)
+        
+        # If we're still here, try letter search as last resort
+        try:
+            track = self._random_by_letter()
+            if track and "track_id" not in track and "id_deezer" in track:
+                track["track_id"] = track["id_deezer"]
+            return track
+        except Exception as e:
+            logger.error(f"Final strategy error: {e}")
+            # If everything fails and we need a track now, return a fallback
+            if not self.track_history or not preloading:
+                return self._fallback_track()
+            return None
 
     def _get_random_artist(self):
         """Get random artist"""
@@ -331,105 +495,12 @@ class DeezerClient:
             logger.error(f"Unexpected error processing track: {e}")
             return None
 
-    def get_random_track(self, add_to_history=True, preloading=False):
-        """Fetch a truly random track using various randomization strategies"""
-        strategy_attempts = 0
-        max_strategy_attempts = 3  # Reduced to avoid getting stuck
-        
-        strategies = [
-            self._random_by_artist,
-            self._random_by_genre,
-            self._random_by_letter,
-            # These two are less reliable, so added as fallbacks
-            self._random_by_year,
-            self._random_by_combined
-        ]
-        
-        # Shuffle strategies for even more randomness
-        random.shuffle(strategies)
-        
-        # Try to get a track first with more reliable strategies
-        while strategy_attempts < max_strategy_attempts:
-            strategy_attempts += 1
-            
-            for strategy in strategies[:3]:  # Try the first 3 shuffled strategies
-                try:
-                    track = strategy()
-                    if track:
-                        # If this is a standalone request and we want to add to history
-                        if add_to_history and not preloading:
-                            self.track_history.append(track)
-                            self.current_track_index = len(self.track_history) - 1
-                        
-                        return track
-                except Exception as e:
-                    logger.error(f"Strategy error: {e}")
-                
-                # Small delay to avoid API rate limits
-                time.sleep(self.request_delay)
-        
-        # If we're still here, try letter search as last resort
-        try:
-            return self._random_by_letter()
-        except Exception as e:
-            logger.error(f"Final strategy error: {e}")
-            # If everything fails and we need a track now, return a fallback
-            if not self.track_history or not preloading:
-                return self._fallback_track()
-            return None
-    
-    def get_track_by_search(self, query, extended_json=False):
-        """Fetch tracks from a search query"""
-        try:
-            url = f"{self.api_base}/search/track"
-            params = {
-                "q": query,
-                "limit": 10,
-                "order": "RANKING"  # Sort by relevance
-            }
-            
-            response = requests.get(url, params=params, timeout=self.request_timeout)
-            response.raise_for_status()
-            
-            response_json = response.json()
-            tracks = response_json.get("data", [])
-            
-            if tracks:
-                if extended_json:
-                    return response_json
-                else:
-                    return [self._get_json_for_frontend(track) for track in tracks]
-            else:
-                logger.warning(f"No tracks found for query: {query}")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error fetching tracks by search: {e}")
-            return None
-
-    def get_track_by_id(self, track_id, extended_json=False):
-        """Fetch track by ID"""
-        try:
-            url = f"{self.api_base}/track/{track_id}"
-            response = requests.get(url, timeout=self.request_timeout)
-            if response.status_code == 200:
-                response_json = response.json()
-                if extended_json:
-                    return response_json
-                else:
-                    return self._get_json_for_frontend(response_json)
-            else:
-                logger.warning(f"Error fetching track by ID: {response.status_code}")
-                return None
-        except Exception as e:
-            logger.error(f"Error fetching track by ID: {e}")
-            return None
-
     def _get_json_for_frontend(self, json):
         """Format the JSON response for frontend use"""
         try:
             result = {
                 "id_deezer": json["id"],
+                "track_id": json["id"],  # Add track_id for consistency with app.py
                 "title": json["title"],
                 "link": json["link"],
                 "is_explicit": json["explicit_lyrics"],
@@ -445,6 +516,7 @@ class DeezerClient:
             # Return a partial result with what we have
             result = {
                 "id_deezer": json.get("id", 0),
+                "track_id": json.get("id", 0), # Add track_id for consistency with app.py
                 "title": json.get("title", "Unknown Title"),
                 "link": json.get("link", ""),
                 "is_explicit": json.get("explicit_lyrics", False),

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - aswa</title>
+    <title>Login/Sign Up - aswa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -12,77 +12,279 @@
             color: white;
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         }
+        .tab-active {
+            border-bottom: 2px solid #9333ea;
+        }
+        .form-fade {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .flash-message {
+            transition: opacity 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body class="min-h-screen">
     <!-- Navigation Bar -->
-    <nav class="sticky top-0 z-50 flex justify-between items-center px-8 py-3 bg-black bg-opacity-85 shadow-md">
-        <a href="/" class="text-white text-xl font-bold flex items-center">
-            (a.s.w.a)
-        </a>
-        <div class="flex gap-6">
-            <a href="/" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
-                <i class="fas fa-home"></i> Home
+    <nav class="relative flex justify-between items-center py-0 px-0 bg-[rgba(20,20,20,0.85)] shadow-md z-50">
+        <!-- White ASWA Logo Section -->
+        <div class="h-full bg-white px-6 py-3">
+            <a href="/" class="text-black text-2xl font-bold select-none tracking-widest" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;">( a . s . w . a )</a>
+        </div>
+        <!-- Navigation Links -->
+        <div class="flex gap-4 items-center mr-6">
+            <a href="/login" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>LOGIN</span>
             </a>
-            <a href="/playlist/view" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
-                <i class="fas fa-heart"></i> Your Playlist
+            <a href="/liked_music" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-heart"></i>
+                <span>PLAYLIST</span>
             </a>
-            <a href="/login" class="text-white bg-white bg-opacity-15 font-semibold px-3 py-2 rounded">
-                <i class="fas fa-sign-in-alt"></i> Login
+            <a href="/moodboard" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-palette"></i>
+                <span>MOOD</span>
             </a>
-            <a href="/moodboard" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
-                <i class="fas fa-palette"></i> Moodboard
+            <a href="/analytics" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-chart-line"></i>
+                <span>STATS</span>
             </a>
-            <a href="/analytics" class="text-gray-200 hover:text-white hover:bg-white hover:bg-opacity-10 px-3 py-2 rounded transition">
-                <i class="fas fa-chart-line"></i> Analytics
-            </a>
+            {% if test_mode %}
+            <span class="bg-yellow-500 text-black py-1 px-3 rounded-full text-xs font-bold flex items-center" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;">
+                <i class="fas fa-vial mr-1"></i> TEST MODE
+            </span>
+            {% endif %}
         </div>
     </nav>
     
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages max-w-md mx-auto mt-4 px-4">
+                {% for category, message in messages %}
+                    <div class="flash-message p-3 mb-2 rounded-md {{ 'bg-red-500' if category == 'error' else 'bg-green-500' if category == 'success' else 'bg-blue-500' }}">
+                        <p class="text-white text-sm font-medium">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+            <script>
+                // Auto-hide flash messages after 5 seconds
+                setTimeout(() => {
+                    const flashMessages = document.querySelectorAll('.flash-message');
+                    flashMessages.forEach(msg => {
+                        msg.style.opacity = '0';
+                        setTimeout(() => msg.remove(), 500);
+                    });
+                }, 5000);
+            </script>
+        {% endif %}
+    {% endwith %}
+    
     <!-- Main Content -->
-    <main class="max-w-md mx-auto mt-20 px-4">
+    <main class="max-w-md mx-auto mt-16 px-4">
         <div class="bg-gray-800 rounded-lg p-8 shadow-lg">
             <div class="text-center mb-6">
-                <h1 class="text-3xl font-bold mb-2">Welcome Back</h1>
-                <p class="text-gray-400">Sign in to access your music</p>
+                <h1 class="text-white text-4xl font-bold select-none tracking-widest" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;">(a.s.w.a)</h1>
             </div>
             
-            <div class="space-y-4">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
-                    <input type="email" id="email" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="you@example.com">
-                </div>
-                
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
-                    <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="••••••••">
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="remember" class="h-4 w-4 bg-gray-700 border-gray-600 rounded focus:ring-purple-500">
-                        <label for="remember" class="ml-2 text-sm text-gray-300">Remember me</label>
-                    </div>
-                    <a href="#" class="text-sm text-purple-400 hover:text-purple-300">Forgot password?</a>
-                </div>
-                
-                <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition">
+            <!-- Tabs -->
+            <div class="flex mb-6 border-b border-gray-700">
+                <button id="login-tab" class="w-1/2 py-2 text-center font-medium text-white tab-active">
                     Sign In
+                </button>
+                <button id="signup-tab" class="w-1/2 py-2 text-center font-medium text-gray-400">
+                    Sign Up
                 </button>
             </div>
             
-            <div class="mt-6 text-center">
-                <p class="text-gray-400 text-sm">
-                    {{ message }}
-                </p>
+            <!-- Login Form -->
+            <div id="login-form" class="space-y-4 form-fade">
+                <form action="/login" method="POST">
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-500"></i>
+                            </div>
+                            <input type="email" id="login-email" name="login-email" required class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="you@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="login-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-500"></i>
+                            </div>
+                            <input type="password" id="login-password" name="login-password" required class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="••••••••">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i class="fas fa-eye text-gray-500 cursor-pointer hover:text-gray-300" id="toggle-password"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition flex justify-center items-center mt-6">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Signup Form (Hidden by default) -->
+            <div id="signup-form" class="space-y-4 form-fade hidden opacity-0">
+                <form action="/signup" method="POST">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="first-name" class="block text-sm font-medium text-gray-300 mb-1">First Name</label>
+                            <input type="text" id="first-name" name="first-name" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="John">
+                        </div>
+                        <div>
+                            <label for="last-name" class="block text-sm font-medium text-gray-300 mb-1">Last Name</label>
+                            <input type="text" id="last-name" name="last-name" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="Doe">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="signup-email" class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-500"></i>
+                            </div>
+                            <input type="email" id="signup-email" name="signup-email" required class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="you@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="signup-password" class="block text-sm font-medium text-gray-300 mb-1">Create Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-500"></i>
+                            </div>
+                            <input type="password" id="signup-password" name="signup-password" required class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="••••••••">
+                        </div>
+                        <div class="mt-1">
+                            <div class="flex gap-1 mt-1">
+                                <div class="h-1 flex-1 rounded-full bg-gray-600" id="strength-1"></div>
+                                <div class="h-1 flex-1 rounded-full bg-gray-600" id="strength-2"></div>
+                                <div class="h-1 flex-1 rounded-full bg-gray-600" id="strength-3"></div>
+                                <div class="h-1 flex-1 rounded-full bg-gray-600" id="strength-4"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Use 8+ characters with a mix of letters, numbers & symbols</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-500"></i>
+                            </div>
+                            <input type="password" id="confirm-password" name="confirm-password" required class="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="••••••••">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition flex justify-center items-center mt-6">
+                        <i class="fas fa-user-plus mr-2"></i> Create Account
+                    </button>
+                </form>
             </div>
         </div>
     </main>
     
     <script>
-        document.querySelector('button').addEventListener('click', function() {
-            alert('Login functionality coming soon!');
+        // Tab switching functionality
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('tab-active');
+            loginTab.classList.remove('text-gray-400');
+            loginTab.classList.add('text-white');
+            signupTab.classList.remove('tab-active');
+            signupTab.classList.add('text-gray-400');
+            signupTab.classList.remove('text-white');
+            
+            // Show login form with animation
+            loginForm.classList.remove('hidden', 'opacity-0');
+            signupForm.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                signupForm.classList.add('hidden');
+            }, 300);
         });
+        
+        signupTab.addEventListener('click', () => {
+            signupTab.classList.add('tab-active');
+            signupTab.classList.remove('text-gray-400');
+            signupTab.classList.add('text-white');
+            loginTab.classList.remove('tab-active');
+            loginTab.classList.add('text-gray-400');
+            loginTab.classList.remove('text-white');
+            
+            // Show signup form with animation
+            signupForm.classList.remove('hidden');
+            setTimeout(() => {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('opacity-0');
+            }, 10);
+        });
+        
+        // Password visibility toggle
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('login-password');
+        
+        togglePassword.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePassword.classList.remove('fa-eye');
+                togglePassword.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                togglePassword.classList.remove('fa-eye-slash');
+                togglePassword.classList.add('fa-eye');
+            }
+        });
+        
+        // Password strength indicator
+        const signupPassword = document.getElementById('signup-password');
+        const strength1 = document.getElementById('strength-1');
+        const strength2 = document.getElementById('strength-2');
+        const strength3 = document.getElementById('strength-3');
+        const strength4 = document.getElementById('strength-4');
+        
+        signupPassword.addEventListener('input', () => {
+            const value = signupPassword.value;
+            const strength = calculatePasswordStrength(value);
+            
+            // Reset all indicators
+            [strength1, strength2, strength3, strength4].forEach(el => {
+                el.className = 'h-1 flex-1 rounded-full bg-gray-600';
+            });
+            
+            if (value.length > 0) {
+                if (strength >= 1) {
+                    strength1.className = 'h-1 flex-1 rounded-full bg-red-500';
+                }
+                if (strength >= 2) {
+                    strength2.className = 'h-1 flex-1 rounded-full bg-orange-500';
+                }
+                if (strength >= 3) {
+                    strength3.className = 'h-1 flex-1 rounded-full bg-yellow-500';
+                }
+                if (strength >= 4) {
+                    strength4.className = 'h-1 flex-1 rounded-full bg-green-500';
+                }
+            }
+        });
+        
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength += 1;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            return strength;
+        }
     </script>
 </body>
 </html>

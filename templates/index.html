@@ -1,398 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>aswa: Music Recommendation System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-            background: #00000086;
-            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        }
-        
-        /* Navigation Bar Styles */
-        .navbar {
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 2rem;
-            background-color: rgba(20, 20, 20, 0.85);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            z-index: 50;
-        }
-        
-        .nav-brand {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        
-        .nav-brand i {
-            margin-right: 8px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-        
-        .nav-item {
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 0.5rem 0.75rem;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .nav-item:hover {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .nav-item.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.15);
-            font-weight: 600;
-        }
-        
-        .background-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('{{ album_image }}') center/cover no-repeat;
-            filter: blur(5px);
-            opacity: 0.5;
-            z-index: 1;
-        }
-        
-        .content-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            z-index: 5;
-        }
-        
-        .interaction-area {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            z-index: 5;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .dislike-area {
-            left: 0;
-            background-color: rgba(255, 0, 0, 0.05);
-        }
-        
-        .like-area {
-            right: 0;
-            background-color: rgba(71, 250, 0, 0.05);
-        }
-        
-        .dislike-area:hover {
-            background-color: rgba(255, 0, 0, 0.15);
-        }
-        
-        .like-area:hover {
-            background-color: rgba(71, 250, 0, 0.15);
-        }
-        
-        /* Moved indicators to top center */
-        .action-indicator {
-            position: absolute;
-            top: 80px; /* Positioned below nav bar */
-            font-size: 96px;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .dislike-icon {
-            left: 5%; /* Center horizontally in left half */
-            top: 2.5%; /* Center vertically */
-        }
-        
-        .like-icon {
-            right: 5%; /* Center horizontally in right half */
-            top: 2.5%; /* Center vertically */
-        }
-        
-        .dislike-area:hover .dislike-icon,
-        .like-area:hover .like-icon {
-            opacity: 0.8;
-        }
-        
-        .postcard-container {
-            position: relative;
-            width: 90%;
-            max-width: 1040px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transform: scale(0.8);
-            z-index: 10;
-        }
-        
-        .postcard, .postcard * {
-            user-select: none;
-            -webkit-user-drag: none;
-        }   
-        
-        .postcard {
-            width: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: row;
-            text-align: left;
-        }
-        
-        .postcard-image {
-            width: 50%;
-            height: auto;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .postcard-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            -webkit-user-drag: none;
-        }
-        
-        .postcard-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0);
-            width: 50%;
-            align-items: center;
-        }
-        
-        .postcard-details {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-right: 30px;
-        }
-        
-        .postcard-title {
-            font-size: 2.2rem;
-            font-weight: bold;
-            margin-bottom: 6px;
-            color: #333;
-        }
-        
-        .postcard-artists {
-            color: #666;
-            font-size: 1.8rem;
-            font-weight: 450;
-            margin-bottom: 3px;
-        }
-        
-        .postcard-album {
-            color: #999;
-            font-size: 1.6rem;
-        }
-        
-        .audio-player {
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .deezer-link {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        
-        .deezer-logo {
-            height: 30px;
-            pointer-events: none;
-            user-select: none;
-        }
-        
-        .progress-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0%;
-            height: 48px;
-            filter: blur(0.5px);
-            background: rgba(255, 255, 255, 0.4);
-            transition: width 0.4s linear;
-        }
-        
-        /* Horizontal slide animations */
-        .slide-left-enter {
-            transform: translateX(-100%);
-            opacity: 0;
-        }
-        
-        .slide-left-enter-active {
-            transform: translateX(0);
-            opacity: 1;
-            transition: all 300ms ease-in;
-        }
-        
-        .slide-left-exit {
-            transform: translateX(100%);
-            opacity: 0;
-            transition: all 300ms ease-in;
-        }
-        
-        .slide-right-enter {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        
-        .slide-right-enter-active {
-            transform: translateX(0);
-            opacity: 1;
-            transition: all 300ms ease-in;
-        }
-        
-        .slide-right-exit {
-            transform: translateX(-100%);
-            opacity: 0;
-            transition: all 300ms ease-out;
-        }
-        
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 100;
-        }
-        
-        .toast.show {
-            opacity: 1;
-        }
-        
-        /* Indicator labels */
-        .action-label {
-            display: block;
-            text-align: center;
-            margin-top: -20%;
-            font-size: 24px;
-            font-weight: 500;
-        }
-    </style>
 </head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <a href="/" class="nav-brand">
-            (a.s.w.a)
-        </a>
-        <div class="nav-links">
-            <a href="/login" class="nav-item">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </a>
-            <a href="/liked_music" class="nav-item">
-                <i class="fas fa-heart"></i> Liked Music
-            </a>
-            <a href="/moodboard" class="nav-item">
-                <i class="fas fa-palette"></i> Moodboard
-            </a>
-            <a href="/analytics" class="nav-item">
-                <i class="fas fa-chart-line"></i> Analytics
-            </a>
-        </div>
-    </nav>
-    
+<body class="m-0 h-screen flex flex-col overflow-hidden relative bg-black/50 font-sans">
 
-    <div class="background-container" id="background-container"></div>
+<!-- Navigation Bar -->
+<nav class="relative flex justify-between items-center py-0 px-0 bg-[rgba(20,20,20,0.85)] shadow-md z-50">
+    <!-- White ASWA Logo Section -->
+    <div class="h-full bg-white px-6 py-3">
+        <a href="/" class="text-black text-2xl font-bold select-none tracking-widest" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;">( a . s . w . a )</a>
+    </div>
+    <!-- Navigation Links -->
+    <div class="flex gap-4 items-center mr-6">
+        {% if current_user %}
+        <!-- Logged-in user display -->
+        <div class="flex items-center gap-3">
+            <div class="text-white/85 font-medium" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-user mr-1"></i>
+                <span>{{ current_user.first_name or current_user.email }}</span>
+            </div>
+            <a href="/profile" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-user-circle"></i>
+                <span>PROFILE</span>
+            </a>
+            <a href="/logout" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>LOGOUT</span>
+            </a>
+        </div>
+        {% else %}
+        <a href="/login" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>LOGIN</span>
+        </a>
+        {% endif %}
+        <a href="/playlist/view" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-heart"></i>
+            <span>PLAYLIST</span>
+        </a>
+        <a href="/moodboard" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-palette"></i>
+            <span>MOOD</span>
+        </a>
+        <a href="/analytics" class="nav-link text-white/85 no-underline text-center font-medium py-2 px-3 rounded transition-all duration-200 hover:text-white hover:bg-white/10 flex items-center gap-2" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.05em;">
+            <i class="fas fa-chart-line"></i>
+            <span>STATS</span>
+        </a>
+        {% if test_mode %}
+        <span class="bg-yellow-500 text-black py-1 px-3 rounded-full text-xs font-bold flex items-center" style="font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;">
+            <i class="fas fa-vial mr-1"></i> TEST MODE
+        </span>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+            {% for category, message in messages %}
+                <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded mb-2 flex justify-between items-center shadow-md">
+                    <span>{{ message }}</span>
+                    <button class="text-{{ 'green' if category == 'success' else 'red' }}-700 hover:text-{{ 'green' if category == 'success' else 'red' }}-900" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
     
-    <div class="content-container">
-        <!-- Interaction areas -->
-        <div class="interaction-area dislike-area" id="dislike-area">
-            <div class="action-indicator dislike-icon">
-                <i class="fas fa-times"></i>
-                <span class="action-label">Skip</span>
-            </div>
-        </div>
-        <div class="interaction-area like-area" id="like-area">
-            <div class="action-indicator like-icon">
-                <i class="fas fa-heart"></i>
-                <span class="action-label">Like</span>
-            </div>
-        </div>
-        
-        <div class="postcard-container">
-            <div class="postcard" id="postcard" style="user-select: none;">
-                <div class="postcard-image">
-                    <img draggable="false" id="album-cover" src="{{ album_image }}" alt="Album Cover">
-                </div>
-                <div class="postcard-content">
-                    <div class="postcard-details">
-                        <div class="postcard-title" id="track-title">
-                            {{ album_title }} {% if album_isexplicit %} (E) {% endif %}
-                        </div>
-                        <div class="postcard-artists" id="artist-name">{{ artists }}</div>
-                        <div class="postcard-album" id="album-details">{{ album_details }}</div>
-                    </div>
-                
-                    <!-- Deezer logo placed AFTER the text block -->
-                    <div class="deezer-link">
-                        <a href="{{ album_link }}" target="_blank">
-                            <img class="deezer-logo" 
-                                src="https://upload.wikimedia.org/wikipedia/commons/7/75/Deezer_logo%2C_2023.svg" 
-                                alt="Deezer">
-                        </a>
-                    </div>                
-                </div>
-                
-                <audio class="audio-player" id="preview-player" src="{{ preview_url }}" autoplay loop></audio>
-            </div>
+<div id="background-container" class="absolute top-0 left-0 w-full h-full bg-center bg-cover bg-no-repeat blur-md opacity-50 z-[1]" style="background-image: url('{{ album_image }}');"></div>
+    
+<div class="flex-1 flex justify-center items-center relative z-[5]">
+    <!-- Skip Area (Left) - Updated with higher contrast background -->
+    <div id="dislike-area" class="absolute top-0 h-full w-1/2 left-0 z-[5] cursor-pointer transition-colors duration-300 bg-red-500/15 hover:bg-red-500/40 group">
+        <!-- Skip overlay (top-left) -->
+        <div class="absolute top-8 left-8 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <i class="fas fa-times text-7xl text-white"></i>
+            <span class="mt-2 text-xl font-normal text-white">SKIP</span>
         </div>
     </div>
-    
-    <div class="progress-overlay" id="progress-overlay"></div>
-    <div class="toast" id="toast"></div>
 
-    <script>
-        // Tracks data from server
+    <!-- Like Area (Right) - Updated with higher contrast background -->
+    <div id="like-area" class="absolute top-0 h-full w-1/2 right-0 z-[5] cursor-pointer transition-colors duration-300 bg-green-500/15 hover:bg-green-500/40 group">
+        <!-- Like overlay (top-right) -->
+        <div class="absolute top-8 right-8 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <i class="fas fa-heart text-7xl text-white"></i>
+            <span class="mt-2 text-xl font-normal text-white">LIKE</span>
+        </div>
+    </div>
+
+    <!-- Postcard Content -->
+    <div class="relative w-4/5 max-w-md flex flex-col items-center z-10 my-auto mx-auto">
+        <div id="postcard" class="w-full bg-white/90 shadow-xl rounded-2xl overflow-hidden relative z-10 flex flex-col text-left select-none">
+            
+            <!-- Album cover -->
+            <div class="w-full h-auto overflow-hidden relative">
+                <img id="album-cover" draggable="false" src="{{ album_image }}" alt="Album Cover" class="w-full aspect-square object-cover select-none">
+            </div>
+
+            <!-- Text content -->
+            <div class="flex flex-col justify-between p-6 bg-gradient-to-b from-white/90 to-white/95 w-full items-start text-left">
+                <div class="flex-1 flex flex-col justify-center space-y-3 w-full">
+                    <div id="track-title" class="text-2xl font-semibold text-gray-800 leading-tight tracking-tight">
+                        {{ album_title }}
+                    </div>
+                    <div id="artist-name" class="text-xl font-normal text-gray-700">
+                        {{ artists }}
+                    </div>
+                    <div id="album-details" class="text-base text-gray-500">
+                        {{ album_details }}
+                    </div>
+                </div>
+
+                <!-- Deezer logo -->
+                <div class="flex justify-between items-center w-full mt-5 pt-4 border-t border-gray-200">
+                    <a id="album-link" href="{{ album_link }}" target="_blank" class="flex items-center text-blue-600 hover:text-blue-800">
+                        <img class="h-6 pointer-events-none select-none" 
+                            src="https://upload.wikimedia.org/wikipedia/commons/7/75/Deezer_logo%2C_2023.svg" 
+                            alt="Deezer">
+                        <span class="text-xs ml-2 text-gray-500">Listen on Deezer</span>
+                    </a>
+                    
+                    <!-- Explicit Indicator - Fixed -->
+                    <div id="is-explicit" class="text-xs font-bold px-2 py-1 rounded 
+                        {% if album_isexplicit %}
+                            bg-red-100 text-red-700
+                        {% else %}
+                            bg-gray-100 text-gray-300
+                        {% endif %}">
+                        EXPLICIT
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio -->
+            {% if not test_mode %}
+            <audio id="preview-player" src="{{ preview_url }}" autoplay loop class="w-full"></audio>
+            <div class="w-full h-1 bg-gray-200">
+                <div id="audio-progress" class="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-0"></div>
+            </div>
+            {% else %}
+            <div id="test-mode-notice" class="absolute bottom-2 right-2 bg-yellow-400 text-black px-2 py-1 text-xs rounded font-medium">
+                Test Mode: Audio Disabled
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+    
+<div id="progress-overlay" class="absolute bottom-0 left-0 w-0 h-12 blur-[0.5px] bg-white/40 transition-[width] duration-[0.4s] ease-linear"></div>
+<div id="toast" class="fixed bottom-[30px] left-1/2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-100"></div>
+
+<script>
+// Tracks data from server
 const tracks = {{ tracks | tojson | safe }};
 let currentTrackIndex = 0;
+const testMode = {{ test_mode|tojson }};
+const isLoggedIn = {{ 'true' if current_user else 'false' }};
 
 // DOM Elements
 const player = document.getElementById('preview-player');
@@ -406,6 +177,8 @@ const dislikeArea = document.getElementById('dislike-area');
 const likeArea = document.getElementById('like-area');
 const postcard = document.getElementById('postcard');
 const toast = document.getElementById('toast');
+const isExplicit = document.getElementById('is-explicit');
+const albumLink = document.getElementById('album-link');
 
 // Touch handling variables
 let startX = 0;
@@ -415,12 +188,32 @@ const minSwipeDistance = 100; // Minimum distance for a swipe to be registered
 
 async function updateTrackInfo(track) {
     albumCover.src = track.cover_xl;
-    backgroundContainer.style.background = `url('${track.cover_xl}') center/cover no-repeat`;
-    trackTitle.innerHTML = `${track.title} ${track.is_explicit ? '(E)' : ''}`;
+    backgroundContainer.style.backgroundImage = `url('${track.cover_xl}')`;
+    trackTitle.textContent = track.title; // Fixed: removed the (E) from the title
     artistName.textContent = track.artist;
     albumDetails.textContent = track.album;
-    player.src = track.preview;
-    player.play();
+    
+    // Fix 1: Update explicit indicator properly
+    if (track.is_explicit) {
+        isExplicit.textContent = 'EXPLICIT';
+        isExplicit.classList.remove('bg-gray-100', 'text-gray-300');
+        isExplicit.classList.add('bg-red-100', 'text-red-700');
+    } else {
+        isExplicit.textContent = 'EXPLICIT';
+        isExplicit.classList.remove('bg-red-100', 'text-red-700');
+        isExplicit.classList.add('bg-gray-100', 'text-gray-300');
+    }
+    
+    // Fix 3: Update the album link for each track
+    albumLink.href = track.link;
+    
+    if (!testMode && player) {
+        player.src = track.preview;
+        player.play().catch(err => {
+            console.warn("Audio autoplay prevented:", err);
+            showToast("Click to enable audio playback");
+        });
+    }
 
     // Store the current track properly in the tracks array
     if (!tracks.find(t => t.id_deezer === track.id_deezer)) {
@@ -436,24 +229,30 @@ async function updateTrackInfo(track) {
 }
 
 function animateSlide(direction) {
-    const exitClass = direction === 'left' ? 'slide-left-exit' : 'slide-right-exit';
-    const enterClass = direction === 'left' ? 'slide-left-enter' : 'slide-right-enter';
-
-    postcard.classList.add(exitClass);
+    if (direction === 'left') {
+        postcard.classList.add('translate-x-full', 'opacity-0', 'transition-all', 'duration-300', 'ease-in');
+        setTimeout(() => {
+            postcard.classList.remove('translate-x-full', 'opacity-0');
+            postcard.classList.add('-translate-x-full', 'opacity-0');
+        }, 300);
+    } else {
+        postcard.classList.add('-translate-x-full', 'opacity-0', 'transition-all', 'duration-300', 'ease-in');
+        setTimeout(() => {
+            postcard.classList.remove('-translate-x-full', 'opacity-0');
+            postcard.classList.add('translate-x-full', 'opacity-0');
+        }, 300);
+    }
+    
     setTimeout(() => {
-        postcard.classList.remove(exitClass);
-        postcard.classList.add(enterClass);
-    }, 300);
-    setTimeout(() => {
-        postcard.classList.remove(enterClass);
+        postcard.classList.remove('translate-x-full', '-translate-x-full', 'opacity-0', 'transition-all', 'duration-300', 'ease-in');
     }, 600);
 }
 
 function showToast(message) {
     toast.textContent = message;
-    toast.classList.add('show');
+    toast.classList.add('opacity-100');
     setTimeout(() => {
-        toast.classList.remove('show');
+        toast.classList.remove('opacity-100');
     }, 3000);
 }
 
@@ -463,6 +262,17 @@ const doubleClickDelay = 300; // milliseconds
 
 async function handleLike() {
     try {
+        // Check if user is logged in
+        if (!isLoggedIn) {
+            showToast('Please login to save tracks to your playlist');
+            // Redirect to login page after a brief delay
+            setTimeout(() => {
+                const testParam = testMode ? '?test_mode=true' : '';
+                window.location.href = '/login' + testParam;
+            }, 1500);
+            return;
+        }
+        
         const currentTrack = tracks[currentTrackIndex];
         // Make sure we have the current track
         if (!currentTrack) {
@@ -501,7 +311,9 @@ async function handleLike() {
             showToast(errorData.error || 'Error saving track');
         }
         
-        const nextResponse = await fetch('/next_track');
+        // Add test_mode to URL params if we're in test mode
+        const testParam = testMode ? '&test_mode=true' : '';
+        const nextResponse = await fetch(`/next_track${testParam}`);
         if (!nextResponse.ok) {
             throw new Error('Failed to fetch next track');
         }
@@ -514,7 +326,11 @@ async function handleLike() {
         setTimeout(() => {
             updateTrackInfo(track);
             // Reset currentTrack to the new track
-            currentTrack = tracks[currentTrackIndex];
+            currentTrackIndex = tracks.findIndex(t => t.id_deezer === track.id_deezer);
+            if (currentTrackIndex === -1) {
+                tracks.push(track);
+                currentTrackIndex = tracks.length - 1;
+            }
         }, 300);
     } catch (error) {
         console.error('Error saving or fetching track:', error);
@@ -522,7 +338,6 @@ async function handleLike() {
     }
 }
 
-// Similar fix for handleDislike()
 async function handleDislike() {
     try {
         const currentTrack = tracks[currentTrackIndex];
@@ -535,8 +350,11 @@ async function handleDislike() {
         const trackId = currentTrack.id_deezer;
         console.log('Disliking track:', trackId, currentTrack.title);
         
+        // Add test_mode to URL params if we're in test mode
+        const testParam = testMode ? '&test_mode=true' : '';
+        
         // Fetch next track
-        const response = await fetch(`/next_track?track_id=${trackId}`);
+        const response = await fetch(`/next_track?track_id=${trackId}${testParam}`);
         if (!response.ok) {
             throw new Error('Failed to fetch next track');
         }
@@ -547,8 +365,12 @@ async function handleDislike() {
         // Wait for animation to complete, then update track info
         setTimeout(() => {
             updateTrackInfo(track);
-            // Reset currentTrack to the new track
-            currentTrack = tracks[currentTrackIndex];
+            // Update the current track index
+            currentTrackIndex = tracks.findIndex(t => t.id_deezer === track.id_deezer);
+            if (currentTrackIndex === -1) {
+                tracks.push(track);
+                currentTrackIndex = tracks.length - 1;
+            }
         }, 300);
         
         showToast('Track skipped!');
@@ -603,19 +425,19 @@ postcard.addEventListener('touchmove', (e) => {
     const rotation = moveX * 0.05;
     postcard.style.rotate = `${rotation}deg`;
     
-    // Make the background color indicate like/dislike
+    // Fix 2: Make the background highlights more visible with higher opacity values
     if (diff > 50) {
-        // Swiping right (like)
-        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.15)';
-        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+        // Swiping right (like) - darker green
+        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.4)';
+        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
     } else if (diff < -50) {
-        // Swiping left (dislike)
-        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
-        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.05)';
+        // Swiping left (dislike) - darker red
+        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.4)';
+        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.1)';
     } else {
         // Neutral
-        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.05)';
-        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+        likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.1)';
+        dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
     }
 });
 
@@ -639,13 +461,15 @@ postcard.addEventListener('touchend', (e) => {
         setTimeout(() => {
             handleLike();
             
-            // Reset postcard position
-            postcard.style.transition = 'none';
-            postcard.style.transform = 'translateX(0)';
-            postcard.style.rotate = '0deg';
-            setTimeout(() => {
-                postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
-            }, 50);
+            // Reset postcard position - only if we don't need to redirect (if not logged in)
+            if (isLoggedIn) {
+                postcard.style.transition = 'none';
+                postcard.style.transform = 'translateX(0)';
+                postcard.style.rotate = '0deg';
+                setTimeout(() => {
+                    postcard.style.transition = 'transform 0.3s ease, rotate 0.3s ease';
+                }, 50);
+            }
         }, 300);
     } else if (diff < -minSwipeDistance) {
         // Swiped left (dislike)
@@ -670,37 +494,42 @@ postcard.addEventListener('touchend', (e) => {
         postcard.style.rotate = '0deg';
     }
     
-    // Reset background colors
-    likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.05)';
-    dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+    // Reset background colors to match the default state
+    likeArea.style.backgroundColor = 'rgba(71, 250, 0, 0.1)';
+    dislikeArea.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
 });
 
 // Progress bar function
 function updateProgress() {
-    if (!player.duration) return;
+    if (!player || !player.duration) return;
     let progress = (player.currentTime / player.duration) * 100;
     progressOverlay.style.width = `${progress.toFixed(2)}%`;
 }
 
-player.addEventListener('timeupdate', updateProgress);
-
-player.addEventListener('ended', () => {
-    progressOverlay.style.transition = 'none';
-    progressOverlay.style.width = '0%';
-    setTimeout(() => {
-        progressOverlay.style.transition = 'width 0.5s linear';
-    }, 50);
-});
+// Only set up audio-related event listeners if we're not in test mode
+if (!testMode && player) {
+    player.addEventListener('timeupdate', updateProgress);
+    
+    player.addEventListener('ended', () => {
+        progressOverlay.style.transition = 'none';
+        progressOverlay.style.width = '0%';
+        setTimeout(() => {
+            progressOverlay.style.transition = 'width 0.5s linear';
+        }, 50);
+    });
+}
 
 // Keyboard Controls
 document.addEventListener('keydown', (event) => {
     switch(event.code) {
         case 'Space':
             event.preventDefault();
-            if (player.paused) {
-                player.play();
-            } else {
-                player.pause();
+            if (player && !testMode) {
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
             }
             break;
         case 'ArrowLeft':
@@ -715,33 +544,66 @@ document.addEventListener('keydown', (event) => {
 });
 
 // Navigation items functionality
-document.querySelectorAll('.nav-item').forEach(item => {
+document.querySelectorAll('nav a').forEach(item => {
     item.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
         if (href === '/liked_music') {
             e.preventDefault();
-            window.location.href = '/playlist/view';
+            
+            // Add test_mode parameter if we're in test mode
+            const testParam = testMode ? '?test_mode=true' : '';
+            window.location.href = '/playlist/view' + testParam;
             return;
         }
         
-        if (href.startsWith('/')) {
+        if (href.startsWith('/') && href !== '/') {
             e.preventDefault();
             // Remove active class from all items
-            document.querySelectorAll('.nav-item').forEach(i => {
-                i.classList.remove('active');
+            document.querySelectorAll('nav a').forEach(i => {
+                i.classList.remove('bg-white/15', 'font-semibold');
             });
             // Add active class to clicked item
-            this.classList.add('active');
+            this.classList.add('bg-white/15', 'font-semibold');
+            
+            // Preserve test mode when navigating
+            const testParam = testMode ? '?test_mode=true' : '';
+            const navUrl = href + testParam;
             
             // Show toast with the name of the clicked section
-            const sectionName = this.textContent.trim();
+            const sectionName = this.querySelector('span').textContent.trim();
             showToast(`Navigating to ${sectionName}`);
+            
+            // Navigate while preserving test mode
+            window.location.href = navUrl;
         }
     });
 });
 
-// Update nav link text
-document.querySelector('a[href="/liked_music"]').innerHTML = '<i class="fas fa-heart"></i> Your Playlist';
-    </script>
+// Auto-close flash messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const flashMessages = document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]');
+        flashMessages.forEach(message => {
+            message.style.transition = 'opacity 0.5s ease';
+            message.style.opacity = '0';
+            setTimeout(() => message.remove(), 500);
+        });
+    }, 5000);
+    
+    // Make sure the background image is properly set on page load
+    const initialCoverUrl = albumCover.src;
+    if (initialCoverUrl) {
+        backgroundContainer.style.backgroundImage = `url('${initialCoverUrl}')`;
+    }
+    
+    // Make sure the initial album link is set correctly
+    if (tracks.length > 0) {
+        const currentTrack = tracks[currentTrackIndex];
+        if (currentTrack && currentTrack.link) {
+            albumLink.href = currentTrack.link;
+        }
+    }
+});
+</script>
 </body>
 </html>
